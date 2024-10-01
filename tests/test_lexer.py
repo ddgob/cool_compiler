@@ -237,5 +237,20 @@ class TestLexer(unittest.TestCase):
         token = lexer.getToken()
         self.assertEqual(token.text, '<=')
 
+    def testLessThanInputNumberOfTokens(self):
+        lexer = Lexer('<')
+        tokens = list(lexer.tokens())
+        self.assertEqual(len(tokens), 1)
+
+    def testLessThanInputTokenType(self):
+        lexer = Lexer('<')
+        token = lexer.getToken()
+        self.assertEqual(token.kind, TokenType.LTH)
+
+    def testLessThanInputText(self):
+        lexer = Lexer('<')
+        token = lexer.getToken()
+        self.assertEqual(token.text, '<')
+
 if __name__ == "__main__":
     pass
