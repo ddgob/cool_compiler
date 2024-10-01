@@ -154,5 +154,20 @@ class TestLexer(unittest.TestCase):
         self.assertEqual(tokens[0].text, '\n')
         self.assertEqual(tokens[1].text, '+')
 
+    def testSubtractionInputNumberOfTokens(self):
+        lexer = Lexer('-')
+        tokens = list(lexer.tokens())
+        self.assertEqual(len(tokens), 1)
+
+    def testSubtractionInputTokenType(self):
+        lexer = Lexer('-')
+        tokens = list(lexer.tokens())
+        self.assertEqual(tokens[0].kind, TokenType.SUB)
+
+    def testSubtractionInputText(self):
+        lexer = Lexer('-')
+        token = lexer.getToken()
+        self.assertEqual(token.text, '-')
+
 if __name__ == "__main__":
     pass
