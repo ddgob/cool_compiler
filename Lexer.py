@@ -109,6 +109,12 @@ class Lexer:
             self.position += 1
             comment += '*'
             return Token(comment, TokenType.COM)
+        elif current_character.isdigit():
+            number = current_character
+            while self.position < self.length and self.input[self.position].isdigit():
+                number += self.input[self.position]
+                self.position += 1
+            return Token(number, TokenType.NUM)
         elif current_character == '+':
             return Token('+', TokenType.ADD)
         elif current_character == '/':
