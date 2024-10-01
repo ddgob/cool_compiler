@@ -13,5 +13,10 @@ class TestLexer(unittest.TestCase):
         tokens = list(lexer.tokens())
         self.assertEqual(len(tokens), 0)
 
+    def testEmptyInputTokenType(self):
+        lexer = Lexer('')
+        token = lexer.getToken()
+        self.assertEqual(token.kind, TokenType.EOF)
+
 if __name__ == "__main__":
     pass
