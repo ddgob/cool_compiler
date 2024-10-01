@@ -77,5 +77,7 @@ class Lexer:
         Return the next token.
         TODO: Implement this method!
         """
+        if self.position >= self.length:
+            return Token('', TokenType.EOF)
         token = None
         return token
