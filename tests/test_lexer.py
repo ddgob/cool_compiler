@@ -169,5 +169,43 @@ class TestLexer(unittest.TestCase):
         token = lexer.getToken()
         self.assertEqual(token.text, '-')
 
+    def testMultiplicationInputNumberOfTokens(self):
+        lexer = Lexer('*')
+        tokens = list(lexer.tokens())
+        self.assertEqual(len(tokens), 1)
+
+    def testMultiplicationInputTokenType(self):
+        lexer = Lexer('*')
+        tokens = list(lexer.tokens())
+        self.assertEqual(tokens[0].kind, TokenType.MUL)
+
+    def testMultiplicationInputText(self):
+        lexer = Lexer('*')
+        token = lexer.getToken()
+        self.assertEqual(token.text, '*')
+
+    def testMultiplicationAndBlockCommentAndWhiteSpaceInputNumberOfTokens(self):
+        lexer = Lexer('** *')
+        tokens = list(lexer.tokens())
+        self.assertEqual(len(tokens), 1)
+
+    def testMultiplicationAndBlockCommentAndWhiteSpaceInputTokenType(self):
+        lexer = Lexer('** *')
+        token1 = lexer.getToken()
+        token2 = lexer.getToken()
+        token3 = lexer.getToken()
+        self.assertEqual(token1.kind, TokenType.COM)
+        self.assertEqual(token2.kind, TokenType.WSP)
+        self.assertEqual(token3.kind, TokenType.MUL)
+
+    def testMultiplicationAndCommentAndWhiteSpaceInputText(self):
+        lexer = Lexer('* foo bar * *')
+        token1 = lexer.getToken()
+        token2 = lexer.getToken()
+        token3 = lexer.getToken()
+        self.assertEqual(token1.text, '* foo bar *')
+        self.assertEqual(token2.text, ' ')
+        self.assertEqual(token3.text, '*')
+
 if __name__ == "__main__":
     pass
