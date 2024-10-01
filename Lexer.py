@@ -79,5 +79,12 @@ class Lexer:
         """
         if self.position >= self.length:
             return Token('', TokenType.EOF)
-        token = None
-        return token
+        
+        current_character = self.input[self.position]
+        self.position += 1
+
+        if current_character == '\n':
+            return Token('\n', TokenType.NLN)
+        else:
+            token = None
+            return token
