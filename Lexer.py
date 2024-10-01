@@ -132,6 +132,22 @@ class Lexer:
             if firstCharAfterTIsR and secondCharAfterTIsU and thirdCharAfterTIsE:
                 self.position += 1
                 return Token('true', TokenType.TRU)
+        elif current_character == 'f':
+            firstCharAfterFIsA = self.input[self.position] == 'a'
+            self.position += 1
+            secondCharAfterFIsL = self.input[self.position] == 'l'
+            self.position += 1
+            thirdCharAfterFIsS = self.input[self.position] == 's'
+            self.position += 1
+            fourthCharAfterFIsE = self.input[self.position] == 'e'
+            if (
+                firstCharAfterFIsA and 
+                secondCharAfterFIsL and 
+                thirdCharAfterFIsS and
+                fourthCharAfterFIsE
+            ):
+                self.position += 1
+                return Token('false', TokenType.FLS)
         else:
             token = None
             return token
