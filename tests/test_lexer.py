@@ -38,5 +38,20 @@ class TestLexer(unittest.TestCase):
         token = lexer.getToken()
         self.assertEqual(token.text, '\n')
 
+    def testWhiteSpaceInputNumberOfTokens(self):
+        lexer = Lexer(' ')
+        tokens = list(lexer.tokens())
+        self.assertEqual(len(tokens), 0)
+
+    def testWhiteSpaceInputTokenType(self):
+        lexer = Lexer(' ')
+        token = lexer.getToken()
+        self.assertEqual(token.kind, TokenType.WSP)
+
+    def testWhiteSpaceInputText(self):
+        lexer = Lexer(' ')
+        token = lexer.getToken()
+        self.assertEqual(token.text, ' ')
+
 if __name__ == "__main__":
     pass
