@@ -207,5 +207,20 @@ class TestLexer(unittest.TestCase):
         self.assertEqual(token2.text, ' ')
         self.assertEqual(token3.text, '*')
 
+    def testDivisionInputNumberOfTokens(self):
+        lexer = Lexer('/')
+        tokens = list(lexer.tokens())
+        self.assertEqual(len(tokens), 1)
+
+    def testDivisionInputTokenType(self):
+        lexer = Lexer('/')
+        token = lexer.getToken()
+        self.assertEqual(token.kind, TokenType.DIV)
+
+    def testDivisionInputText(self):
+        lexer = Lexer('/')
+        token = lexer.getToken()
+        self.assertEqual(token.text, '/')
+
 if __name__ == "__main__":
     pass
