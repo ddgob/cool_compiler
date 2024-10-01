@@ -94,6 +94,13 @@ class Lexer:
                     comment += self.input[self.position]
                     self.position += 1
                 return Token(comment, TokenType.COM)
+        elif current_character == '*':
+            comment = '*'
+            while self.position < self.length and self.input[self.position] != '*':
+                comment += self.input[self.position]
+                self.position += 1
+            comment += '*'
+            return Token(comment, TokenType.COM)
         else:
             token = None
             return token
