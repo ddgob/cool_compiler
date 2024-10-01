@@ -123,5 +123,36 @@ class TestLexer(unittest.TestCase):
         token = lexer.getToken()
         self.assertEqual(token.text, '* foo bar *')
 
+    def testAddInputNumberOfTokens(self):
+        lexer = Lexer('+')
+        tokens = list(lexer.tokens())
+        self.assertEqual(len(tokens), 1)
+
+    def testAddInputTokenType(self):
+        lexer = Lexer('+')
+        tokens = list(lexer.tokens())
+        self.assertEqual(tokens[0].kind, TokenType.ADD)
+
+    def testAddInputText(self):
+        lexer = Lexer('+')
+        token = lexer.getToken()
+        self.assertEqual(token.text, '+')
+
+    def testAddAndCommentAndNewLineInput(self):
+        lexer = Lexer('+ -- foo bar\n')
+        tokens = [token for token in lexer.tokens()]
+        self.assertEqual(tokens[0].kind, TokenType.ADD)
+        self.assertEqual(tokens[1].kind, TokenType.NLN)
+        self.assertEqual(tokens[0].text, '+')
+        self.assertEqual(tokens[1].text, '\n')
+    
+    def testAddAndCommentAndNewLineInvertedInput(self):
+        lexer = Lexer('-- foo bar\n +')
+        tokens = [token for token in lexer.tokens()]
+        self.assertEqual(tokens[0].kind, TokenType.NLN)
+        self.assertEqual(tokens[1].kind, TokenType.ADD)
+        self.assertEqual(tokens[0].text, '\n')
+        self.assertEqual(tokens[1].text, '+')
+
 if __name__ == "__main__":
     pass
