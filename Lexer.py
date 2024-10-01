@@ -93,6 +93,9 @@ class Lexer:
                 while self.position < self.length and self.input[self.position] != '\n':
                     comment += self.input[self.position]
                     self.position += 1
+                if self.position < self.length and self.input[self.position] == '\n':
+                    comment += '\n'
+                self.position += 1
                 return Token(comment, TokenType.COM)
             return Token('-', TokenType.SUB)
         elif current_character == '*':
