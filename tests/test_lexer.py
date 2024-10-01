@@ -222,5 +222,20 @@ class TestLexer(unittest.TestCase):
         token = lexer.getToken()
         self.assertEqual(token.text, '/')
 
+    def testLessEqualInputNumberOfTokens(self):
+        lexer = Lexer('<=')
+        tokens = list(lexer.tokens())
+        self.assertEqual(len(tokens), 1)
+
+    def testLessEqualInputTokenType(self):
+        lexer = Lexer('<=')
+        token = lexer.getToken()
+        self.assertEqual(token.kind, TokenType.LEQ)
+
+    def testLessEqualInputText(self):
+        lexer = Lexer('<=')
+        token = lexer.getToken()
+        self.assertEqual(token.text, '<=')
+
 if __name__ == "__main__":
     pass
