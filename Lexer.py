@@ -88,12 +88,13 @@ class Lexer:
         elif current_character == ' ':
             return Token(' ', TokenType.WSP)
         elif current_character == '-':
-            if self.input[self.position] == '-':
+            if self.position < self.length and self.input[self.position] == '-':
                 comment = '-'
                 while self.position < self.length and self.input[self.position] != '\n':
                     comment += self.input[self.position]
                     self.position += 1
                 return Token(comment, TokenType.COM)
+            return Token('-', TokenType.SUB)
         elif current_character == '*':
             comment = '*'
             while self.position < self.length and self.input[self.position] != '*':
