@@ -53,6 +53,36 @@ class TestLexer(unittest.TestCase):
         token = lexer.getToken()
         self.assertEqual(token.text, ' ')
 
+    def testDigitInputNumberOfTokens(self):
+        lexer = Lexer('1')
+        tokens = list(lexer.tokens())
+        self.assertEqual(len(tokens), 1)
+
+    def testDigitInputTokenType(self):
+        lexer = Lexer('1')
+        token = lexer.getToken()
+        self.assertEqual(token.kind, TokenType.NUM)
+
+    def testDigitInputText(self):
+        lexer = Lexer('1')
+        token = lexer.getToken()
+        self.assertEqual(token.text, '1')
+
+    def testMultiDigitInputNumberOfTokens(self):
+        lexer = Lexer('123')
+        tokens = list(lexer.tokens())
+        self.assertEqual(len(tokens), 1)
+
+    def testMultiDigitInputTokenType(self):
+        lexer = Lexer('123')
+        token = lexer.getToken()
+        self.assertEqual(token.kind, TokenType.NUM)
+
+    def testMultiDigitInputText(self):
+        lexer = Lexer('123')
+        token = lexer.getToken()
+        self.assertEqual(token.text, '123')
+
     def testSingleLineCommentTokenInputNumberOfTokens(self):
         lexer = Lexer('--')
         tokens = list(lexer.tokens())
