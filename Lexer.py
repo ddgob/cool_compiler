@@ -85,6 +85,8 @@ class Lexer:
 
         if current_character == '\n':
             return Token('\n', TokenType.NLN)
+        elif current_character == ' ':
+            return Token(' ', TokenType.WSP)
         else:
             token = None
             return token
