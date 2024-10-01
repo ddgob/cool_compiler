@@ -114,11 +114,11 @@ class Lexer:
         elif current_character == '/':
             return Token('/', TokenType.DIV)
         elif current_character == '<':
-            if self.input[self.position] == '=':
+            if self.position < self.length and self.input[self.position] == '=':
                 self.position += 1
                 return Token('<=', TokenType.LEQ)
             else:
-                return None
+                return Token('<', TokenType.LTH)
         else:
             token = None
             return token
