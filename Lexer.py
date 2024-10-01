@@ -49,7 +49,9 @@ class Lexer:
         scanned.
         TODO: You will need to implement this method.
         """
-        pass
+        self.input = source
+        self.position = 0
+        self.length = len(source)
 
     def tokens(self):
         """
