@@ -8,7 +8,7 @@ from Lexer import Lexer, TokenType
 
 class TestLexer(unittest.TestCase):
     
-    def test_empty_input(self):
+    def testEmptyInput(self):
         lexer = Lexer('')
         tokens = list(lexer.tokens())
         self.assertEqual(len(tokens), 0)
