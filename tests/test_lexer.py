@@ -23,5 +23,20 @@ class TestLexer(unittest.TestCase):
         token = lexer.getToken()
         self.assertEqual(token.text, '')
 
+    def testNewLineInputNumberOfTokens(self):
+        lexer = Lexer('\n')
+        tokens = list(lexer.tokens())
+        self.assertEqual(len(tokens), 1)
+
+    def testNewLineInputTokenType(self):
+        lexer = Lexer('\n')
+        token = lexer.getToken()
+        self.assertEqual(token.kind, TokenType.NLN)
+
+    def testNewLineInputText(self):
+        lexer = Lexer('\n')
+        token = lexer.getToken()
+        self.assertEqual(token.text, '\n')
+
 if __name__ == "__main__":
     pass
