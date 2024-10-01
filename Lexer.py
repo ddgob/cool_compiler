@@ -111,6 +111,8 @@ class Lexer:
             return Token(comment, TokenType.COM)
         elif current_character == '+':
             return Token('+', TokenType.ADD)
+        elif current_character == '/':
+            return Token('/', TokenType.DIV)
         else:
             token = None
             return token
