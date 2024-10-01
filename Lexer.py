@@ -123,6 +123,15 @@ class Lexer:
             return Token('~', TokenType.NEG)
         elif current_character == '!':
             return Token('!', TokenType.NOT)
+        elif current_character == 't':
+            firstCharAfterTIsR = self.input[self.position] == 'r'
+            self.position += 1
+            secondCharAfterTIsU = self.input[self.position] == 'u'
+            self.position += 1
+            thirdCharAfterTIsE = self.input[self.position] == 'e'
+            if firstCharAfterTIsR and secondCharAfterTIsU and thirdCharAfterTIsE:
+                self.position += 1
+                return Token('true', TokenType.TRU)
         else:
             token = None
             return token
