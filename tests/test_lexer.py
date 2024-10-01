@@ -88,5 +88,40 @@ class TestLexer(unittest.TestCase):
         token = lexer.getToken()
         self.assertEqual(token.text, '-- foo bar')
 
+    def testBlockCommentTokenInputNumberOfTokens(self):
+        lexer = Lexer('**')
+        tokens = list(lexer.tokens())
+        self.assertEqual(len(tokens), 0)
+
+    def testCompleteBlockCommentInputNumberOfTokens(self):
+        lexer = Lexer('* foo bar *')
+        tokens = list(lexer.tokens())
+        self.assertEqual(len(tokens), 0)
+    
+    def testNoSpaceBlockCommentInputNumberOfTokens(self):
+        lexer = Lexer('*foobar*')
+        tokens = list(lexer.tokens())
+        self.assertEqual(len(tokens), 0)
+
+    def testBlockCommentInputTokenType(self):
+        lexer = Lexer('**')
+        token = lexer.getToken()
+        self.assertEqual(token.kind, TokenType.COM)
+
+    def testCompleteBlockCommentInputTokenType(self):
+        lexer = Lexer('* foo bar *')
+        token = lexer.getToken()
+        self.assertEqual(token.kind, TokenType.COM)
+
+    def testBlockCommentInputText(self):
+        lexer = Lexer('**')
+        token = lexer.getToken()
+        self.assertEqual(token.text, '**')
+
+    def testCompleteBlockTokenCommentInputText(self):
+        lexer = Lexer('* foo bar *')
+        token = lexer.getToken()
+        self.assertEqual(token.text, '* foo bar *')
+
 if __name__ == "__main__":
     pass
