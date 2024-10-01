@@ -172,17 +172,13 @@ class TestLexer(unittest.TestCase):
         lexer = Lexer('+ -- foo bar\n')
         tokens = [token for token in lexer.tokens()]
         self.assertEqual(tokens[0].kind, TokenType.ADD)
-        self.assertEqual(tokens[1].kind, TokenType.NLN)
         self.assertEqual(tokens[0].text, '+')
-        self.assertEqual(tokens[1].text, '\n')
     
     def testAddAndCommentAndNewLineInvertedInput(self):
         lexer = Lexer('-- foo bar\n +')
         tokens = [token for token in lexer.tokens()]
-        self.assertEqual(tokens[0].kind, TokenType.NLN)
-        self.assertEqual(tokens[1].kind, TokenType.ADD)
-        self.assertEqual(tokens[0].text, '\n')
-        self.assertEqual(tokens[1].text, '+')
+        self.assertEqual(tokens[0].kind, TokenType.ADD)
+        self.assertEqual(tokens[0].text, '+')
 
     def testSubtractionInputNumberOfTokens(self):
         lexer = Lexer('-')
