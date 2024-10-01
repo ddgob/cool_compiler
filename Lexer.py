@@ -101,6 +101,8 @@ class Lexer:
                 self.position += 1
             comment += '*'
             return Token(comment, TokenType.COM)
+        elif current_character == '+':
+            return Token('+', TokenType.ADD)
         else:
             token = None
             return token
