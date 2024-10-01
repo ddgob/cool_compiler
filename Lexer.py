@@ -96,10 +96,17 @@ class Lexer:
                 return Token(comment, TokenType.COM)
             return Token('-', TokenType.SUB)
         elif current_character == '*':
-            comment = '*'
+            initialPosition = self.position
+            comment = current_character
             while self.position < self.length and self.input[self.position] != '*':
                 comment += self.input[self.position]
                 self.position += 1
+
+            if self.position == self.length:
+                self.position = initialPosition
+                return Token('*', TokenType.MUL)
+            
+            self.position += 1
             comment += '*'
             return Token(comment, TokenType.COM)
         elif current_character == '+':
