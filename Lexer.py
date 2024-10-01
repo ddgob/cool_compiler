@@ -121,6 +121,8 @@ class Lexer:
                 return Token('<', TokenType.LTH)
         elif current_character == '~':
             return Token('~', TokenType.NEG)
+        elif current_character == '!':
+            return Token('!', TokenType.NOT)
         else:
             token = None
             return token
