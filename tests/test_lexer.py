@@ -282,5 +282,20 @@ class TestLexer(unittest.TestCase):
         token = lexer.getToken()
         self.assertEqual(token.text, '!')
 
+    def testTrueInputNumberOfTokens(self):
+        lexer = Lexer('true')
+        tokens = list(lexer.tokens())
+        self.assertEqual(len(tokens), 1)
+
+    def testTrueThanInputTokenType(self):
+        lexer = Lexer('true')
+        token = lexer.getToken()
+        self.assertEqual(token.kind, TokenType.TRU)
+
+    def testTrueThanInputText(self):
+        lexer = Lexer('true')
+        token = lexer.getToken()
+        self.assertEqual(token.text, 'true')
+
 if __name__ == "__main__":
     pass
