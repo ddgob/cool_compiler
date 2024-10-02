@@ -490,7 +490,7 @@ class TestLexer(unittest.TestCase):
         self.assertEqual(tokens[6].kind, TokenType.RPR)
         self.assertEqual(tokens[7].kind, TokenType.NLN)
 
-    def testTeacherExample4Text(self):
+    def testTeacherExample5Text(self):
         lexer = Lexer('2 * (3 + 4)\n')
         tokens = list(lexer.tokens())
         self.assertEqual(tokens[0].text, '2')
