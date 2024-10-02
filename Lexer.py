@@ -83,10 +83,20 @@ class Lexer:
         current_character = self.input[self.position]
         self.position += 1
 
-        if current_character == '\n':
-            return Token('\n', TokenType.NLN)
-        elif current_character == ' ':
+        if current_character == ' ':
             return Token(' ', TokenType.WSP)
+        elif current_character.isdigit():
+            number = current_character
+            while self.position < self.length and self.input[self.position].isdigit():
+                number += self.input[self.position]
+                self.position += 1
+            return Token(number, TokenType.NUM)
+        elif current_character == '+':
+            return Token('+', TokenType.ADD)
+        elif current_character == '*':
+            return Token('*', TokenType.MUL)
+        elif current_character == '/':
+            return Token('/', TokenType.DIV)
         elif current_character == '-':
             if self.position < self.length and self.input[self.position] == '-':
                 comment = '-'
@@ -98,18 +108,8 @@ class Lexer:
                 self.position += 1
                 return Token(comment, TokenType.COM)
             return Token('-', TokenType.SUB)
-        elif current_character == '*':
-            return Token('*', TokenType.MUL)
-        elif current_character.isdigit():
-            number = current_character
-            while self.position < self.length and self.input[self.position].isdigit():
-                number += self.input[self.position]
-                self.position += 1
-            return Token(number, TokenType.NUM)
-        elif current_character == '+':
-            return Token('+', TokenType.ADD)
-        elif current_character == '/':
-            return Token('/', TokenType.DIV)
+        elif current_character == '\n':
+            return Token('\n', TokenType.NLN)
         elif current_character == '<':
             if self.position < self.length and self.input[self.position] == '=':
                 self.position += 1
