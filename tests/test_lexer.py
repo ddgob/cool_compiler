@@ -422,5 +422,31 @@ class TestLexer(unittest.TestCase):
         self.assertEqual(tokens[7].text, '<=')
         self.assertEqual(tokens[8].text, '2')
 
+    def testTeacherExample4TokenType(self):
+        lexer = Lexer('343 + 324 - 63535 * ~344\n')
+        tokens = list(lexer.tokens())
+        self.assertEqual(tokens[0].kind, TokenType.NUM)
+        self.assertEqual(tokens[1].kind, TokenType.ADD)
+        self.assertEqual(tokens[2].kind, TokenType.NUM)
+        self.assertEqual(tokens[3].kind, TokenType.SUB)
+        self.assertEqual(tokens[4].kind, TokenType.NUM)
+        self.assertEqual(tokens[5].kind, TokenType.MUL)
+        self.assertEqual(tokens[6].kind, TokenType.NEG)
+        self.assertEqual(tokens[7].kind, TokenType.NUM)
+        self.assertEqual(tokens[8].kind, TokenType.NLN)
+
+    def testTeacherExample4Text(self):
+        lexer = Lexer('343 + 324 - 63535 * ~344\n')
+        tokens = list(lexer.tokens())
+        self.assertEqual(tokens[0].text, '343')
+        self.assertEqual(tokens[1].text, '+')
+        self.assertEqual(tokens[2].text, '324')
+        self.assertEqual(tokens[3].text, '-')
+        self.assertEqual(tokens[4].text, '63535')
+        self.assertEqual(tokens[5].text, '*')
+        self.assertEqual(tokens[6].text, '~')
+        self.assertEqual(tokens[7].text, '344')
+        self.assertEqual(tokens[8].text, '\n')
+
 if __name__ == "__main__":
     pass
