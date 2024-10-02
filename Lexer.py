@@ -159,5 +159,4 @@ class Lexer:
         elif current_character == ')':
             return Token(')', TokenType.RPR)
         else:
-            token = None
-            return token
+            raise ValueError(f"Character not recognized: {current_character}")
