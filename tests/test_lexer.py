@@ -294,19 +294,19 @@ class TestLexer(unittest.TestCase):
         self.assertEqual(token.text, '~')
 
     def testNotInputNumberOfTokens(self):
-        lexer = Lexer('!')
+        lexer = Lexer('not')
         tokens = list(lexer.tokens())
         self.assertEqual(len(tokens), 1)
 
     def testNotThanInputTokenType(self):
-        lexer = Lexer('!')
+        lexer = Lexer('not')
         token = lexer.getToken()
         self.assertEqual(token.kind, TokenType.NOT)
 
     def testNotThanInputText(self):
-        lexer = Lexer('!')
+        lexer = Lexer('not')
         token = lexer.getToken()
-        self.assertEqual(token.text, '!')
+        self.assertEqual(token.text, 'not')
 
     def testTrueInputNumberOfTokens(self):
         lexer = Lexer('true')
