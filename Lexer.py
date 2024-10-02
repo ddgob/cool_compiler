@@ -149,7 +149,9 @@ class Lexer:
             if self.position < self.length and self.input[self.position] == '*':
                 self.position += 1
                 comment = '(*'
-                while self.position + 1 < self.length and self.input[self.position] != '*' and self.input[self.position + 1] != ')':
+                while True:
+                    if self.position + 1 < self.length and self.input[self.position] == '*' and self.input[self.position + 1] == ')':
+                        break
                     comment += self.input[self.position]
                     self.position += 1
                 self.position += 2
