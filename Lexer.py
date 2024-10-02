@@ -80,24 +80,24 @@ class Lexer:
         if self.position >= self.length:
             return Token('', TokenType.EOF)
         
-        current_character = self.input[self.position]
+        currentCharacter = self.input[self.position]
         self.position += 1
 
-        if current_character == ' ':
+        if currentCharacter == ' ':
             return Token(' ', TokenType.WSP)
-        elif current_character.isdigit():
-            number = current_character
+        elif currentCharacter.isdigit():
+            number = currentCharacter
             while self.position < self.length and self.input[self.position].isdigit():
                 number += self.input[self.position]
                 self.position += 1
             return Token(number, TokenType.NUM)
-        elif current_character == '+':
+        elif currentCharacter == '+':
             return Token('+', TokenType.ADD)
-        elif current_character == '*':
+        elif currentCharacter == '*':
             return Token('*', TokenType.MUL)
-        elif current_character == '/':
+        elif currentCharacter == '/':
             return Token('/', TokenType.DIV)
-        elif current_character == '-':
+        elif currentCharacter == '-':
             if self.position < self.length and self.input[self.position] == '-':
                 comment = '-'
                 while self.position < self.length and self.input[self.position] != '\n':
@@ -108,24 +108,24 @@ class Lexer:
                 self.position += 1
                 return Token(comment, TokenType.COM)
             return Token('-', TokenType.SUB)
-        elif current_character == '\n':
+        elif currentCharacter == '\n':
             return Token('\n', TokenType.NLN)
-        elif current_character == '<':
+        elif currentCharacter == '<':
             if self.position < self.length and self.input[self.position] == '=':
                 self.position += 1
                 return Token('<=', TokenType.LEQ)
             else:
                 return Token('<', TokenType.LTH)
-        elif current_character == '~':
+        elif currentCharacter == '~':
             return Token('~', TokenType.NEG)
-        elif current_character == 'n':
+        elif currentCharacter == 'n':
             firstCharAfterN = self.input[self.position]
             self.position += 1
             secondCharAfterN = self.input[self.position]
             if firstCharAfterN == 'o' and secondCharAfterN == 't':
                 self.position += 1
                 return Token('not', TokenType.NOT)
-        elif current_character == 't':
+        elif currentCharacter == 't':
             firstCharAfterTIsR = self.input[self.position] == 'r'
             self.position += 1
             secondCharAfterTIsU = self.input[self.position] == 'u'
@@ -134,7 +134,7 @@ class Lexer:
             if firstCharAfterTIsR and secondCharAfterTIsU and thirdCharAfterTIsE:
                 self.position += 1
                 return Token('true', TokenType.TRU)
-        elif current_character == 'f':
+        elif currentCharacter == 'f':
             firstCharAfterFIsA = self.input[self.position] == 'a'
             self.position += 1
             secondCharAfterFIsL = self.input[self.position] == 'l'
@@ -150,7 +150,7 @@ class Lexer:
             ):
                 self.position += 1
                 return Token('false', TokenType.FLS)
-        elif current_character == '(':
+        elif currentCharacter == '(':
             if self.position < self.length and self.input[self.position] == '*':
                 self.position += 1
                 comment = '(*'
@@ -163,7 +163,7 @@ class Lexer:
                 comment += '*)'
                 return Token(comment, TokenType.COM)
             return Token('(', TokenType.LPR)
-        elif current_character == ')':
+        elif currentCharacter == ')':
             return Token(')', TokenType.RPR)
         else:
-            raise ValueError(f"Character not recognized: {current_character}")
+            raise ValueError(f"Character not recognized: {currentCharacter}")
