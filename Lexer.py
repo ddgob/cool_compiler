@@ -157,6 +157,8 @@ class Lexer:
             ):
                 self.position += 1
                 return Token('false', TokenType.FLS)
+        elif current_character == '(':
+            return Token('(', TokenType.LPR)
         else:
             token = None
             return token
