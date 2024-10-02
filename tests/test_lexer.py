@@ -524,7 +524,25 @@ class TestLexer(unittest.TestCase):
         self.assertEqual(tokens[4].text, '5')
         self.assertEqual(tokens[5].text, '-')
         self.assertEqual(tokens[6].text, '1')
-        self.assertEqual(tokens[7].text, '\n') 
+        self.assertEqual(tokens[7].text, '\n')
+    
+    def testTeacherExample7TokenType(self):
+        lexer = Lexer('1 + (* laksdj fa;lskdjf alsdkjf\nlaskdjf\naslkdjf\nslkd  * lasdkjfa * ) akjd falskd f*)\n2\n')
+        tokens = list(lexer.tokens())
+        self.assertEqual(tokens[0].kind, TokenType.NUM)
+        self.assertEqual(tokens[1].kind, TokenType.ADD)
+        self.assertEqual(tokens[2].kind, TokenType.NLN)
+        self.assertEqual(tokens[3].kind, TokenType.NUM)
+        self.assertEqual(tokens[4].kind, TokenType.NLN)
+
+    def testTeacherExample7Text(self):
+        lexer = Lexer('1 + (* laksdj fa;lskdjf alsdkjf\nlaskdjf\naslkdjf\nslkd  * lasdkjfa * ) akjd falskd f*)\n2\n')
+        tokens = list(lexer.tokens())
+        self.assertEqual(tokens[0].text, '1')
+        self.assertEqual(tokens[1].text, '+')
+        self.assertEqual(tokens[2].text, '\n')
+        self.assertEqual(tokens[3].text, '2')
+        self.assertEqual(tokens[4].text, '\n')
 
 if __name__ == "__main__":
     pass
