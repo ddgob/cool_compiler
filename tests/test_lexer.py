@@ -478,5 +478,29 @@ class TestLexer(unittest.TestCase):
         self.assertEqual(tokens[7].text, '344')
         self.assertEqual(tokens[8].text, '\n')
 
+    def testTeacherExample5TokenType(self):
+        lexer = Lexer('2 * (3 + 4)\n')
+        tokens = list(lexer.tokens())
+        self.assertEqual(tokens[0].kind, TokenType.NUM)
+        self.assertEqual(tokens[1].kind, TokenType.MUL)
+        self.assertEqual(tokens[2].kind, TokenType.LPR)
+        self.assertEqual(tokens[3].kind, TokenType.NUM)
+        self.assertEqual(tokens[4].kind, TokenType.ADD)
+        self.assertEqual(tokens[5].kind, TokenType.NUM)
+        self.assertEqual(tokens[6].kind, TokenType.RPR)
+        self.assertEqual(tokens[7].kind, TokenType.NLN)
+
+    def testTeacherExample4Text(self):
+        lexer = Lexer('2 * (3 + 4)\n')
+        tokens = list(lexer.tokens())
+        self.assertEqual(tokens[0].text, '2')
+        self.assertEqual(tokens[1].text, '*')
+        self.assertEqual(tokens[2].text, '(')
+        self.assertEqual(tokens[3].text, '3')
+        self.assertEqual(tokens[4].text, '+')
+        self.assertEqual(tokens[5].text, '4')
+        self.assertEqual(tokens[6].text, ')')
+        self.assertEqual(tokens[7].text, '\n')  
+
 if __name__ == "__main__":
     pass
