@@ -338,6 +338,21 @@ class TestLexer(unittest.TestCase):
         token = lexer.getToken()
         self.assertEqual(token.text, 'false')
 
+    def testLeftParenthesesInputNumberOfTokens(self):
+        lexer = Lexer('(')
+        tokens = list(lexer.tokens())
+        self.assertEqual(len(tokens), 1)
+
+    def testLeftParenthesesThanInputTokenType(self):
+        lexer = Lexer('(')
+        token = lexer.getToken()
+        self.assertEqual(token.kind, TokenType.LPR)
+
+    def testLeftParenthesesThanInputText(self):
+        lexer = Lexer('(')
+        token = lexer.getToken()
+        self.assertEqual(token.text, '(')
+
     def testTeacherExample1TokenType(self):
         lexer = Lexer('1+2\n')
         tokens = list(lexer.tokens())
