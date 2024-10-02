@@ -159,6 +159,8 @@ class Lexer:
                 return Token('false', TokenType.FLS)
         elif current_character == '(':
             return Token('(', TokenType.LPR)
+        elif current_character == ')':
+            return Token(')', TokenType.RPR)
         else:
             token = None
             return token
