@@ -118,8 +118,13 @@ class Lexer:
                 return Token('<', TokenType.LTH)
         elif current_character == '~':
             return Token('~', TokenType.NEG)
-        elif current_character == '!':
-            return Token('!', TokenType.NOT)
+        elif current_character == 'n':
+            firstCharAfterN = self.input[self.position]
+            self.position += 1
+            secondCharAfterN = self.input[self.position]
+            if firstCharAfterN == 'o' and secondCharAfterN == 't':
+                self.position += 1
+                return Token('not', TokenType.NOT)
         elif current_character == 't':
             firstCharAfterTIsR = self.input[self.position] == 'r'
             self.position += 1
