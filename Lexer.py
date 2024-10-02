@@ -99,19 +99,7 @@ class Lexer:
                 return Token(comment, TokenType.COM)
             return Token('-', TokenType.SUB)
         elif current_character == '*':
-            initialPosition = self.position
-            comment = current_character
-            while self.position < self.length and self.input[self.position] != '*':
-                comment += self.input[self.position]
-                self.position += 1
-
-            if self.position == self.length:
-                self.position = initialPosition
-                return Token('*', TokenType.MUL)
-            
-            self.position += 1
-            comment += '*'
-            return Token(comment, TokenType.COM)
+            return Token('*', TokenType.MUL)
         elif current_character.isdigit():
             number = current_character
             while self.position < self.length and self.input[self.position].isdigit():
@@ -158,6 +146,15 @@ class Lexer:
                 self.position += 1
                 return Token('false', TokenType.FLS)
         elif current_character == '(':
+            if self.position < self.length and self.input[self.position] == '*':
+                self.position += 1
+                comment = '(*'
+                while self.position + 1 < self.length and self.input[self.position] != '*' and self.input[self.position + 1] != ')':
+                    comment += self.input[self.position]
+                    self.position += 1
+                self.position += 2
+                comment += '*)'
+                return Token(comment, TokenType.COM)
             return Token('(', TokenType.LPR)
         elif current_character == ')':
             return Token(')', TokenType.RPR)
