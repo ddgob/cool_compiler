@@ -119,39 +119,39 @@ class TestLexer(unittest.TestCase):
         self.assertEqual(token.text, '-- foo bar')
 
     def testBlockCommentTokenInputNumberOfTokens(self):
-        lexer = Lexer('**')
+        lexer = Lexer('(**)')
         tokens = list(lexer.tokens())
         self.assertEqual(len(tokens), 0)
 
     def testCompleteBlockCommentInputNumberOfTokens(self):
-        lexer = Lexer('* foo bar *')
+        lexer = Lexer('(* foo bar *)')
         tokens = list(lexer.tokens())
         self.assertEqual(len(tokens), 0)
     
     def testNoSpaceBlockCommentInputNumberOfTokens(self):
-        lexer = Lexer('*foobar*')
+        lexer = Lexer('(*foobar*)')
         tokens = list(lexer.tokens())
         self.assertEqual(len(tokens), 0)
 
     def testBlockCommentInputTokenType(self):
-        lexer = Lexer('**')
+        lexer = Lexer('(**)')
         token = lexer.getToken()
         self.assertEqual(token.kind, TokenType.COM)
 
     def testCompleteBlockCommentInputTokenType(self):
-        lexer = Lexer('* foo bar *')
+        lexer = Lexer('(* foo bar *)')
         token = lexer.getToken()
         self.assertEqual(token.kind, TokenType.COM)
 
     def testBlockCommentInputText(self):
-        lexer = Lexer('**')
+        lexer = Lexer('(**)')
         token = lexer.getToken()
-        self.assertEqual(token.text, '**')
+        self.assertEqual(token.text, '(**)')
 
     def testCompleteBlockTokenCommentInputText(self):
-        lexer = Lexer('* foo bar *')
+        lexer = Lexer('(* foo bar *)')
         token = lexer.getToken()
-        self.assertEqual(token.text, '* foo bar *')
+        self.assertEqual(token.text, '(* foo bar *)')
 
     def testAddInputNumberOfTokens(self):
         lexer = Lexer('+')
@@ -211,12 +211,12 @@ class TestLexer(unittest.TestCase):
         self.assertEqual(token.text, '*')
 
     def testMultiplicationAndBlockCommentAndWhiteSpaceInputNumberOfTokens(self):
-        lexer = Lexer('** *')
+        lexer = Lexer('(**) *')
         tokens = list(lexer.tokens())
         self.assertEqual(len(tokens), 1)
 
     def testMultiplicationAndBlockCommentAndWhiteSpaceInputTokenType(self):
-        lexer = Lexer('** *')
+        lexer = Lexer('(**) *')
         token1 = lexer.getToken()
         token2 = lexer.getToken()
         token3 = lexer.getToken()
@@ -225,11 +225,11 @@ class TestLexer(unittest.TestCase):
         self.assertEqual(token3.kind, TokenType.MUL)
 
     def testMultiplicationAndCommentAndWhiteSpaceInputText(self):
-        lexer = Lexer('* foo bar * *')
+        lexer = Lexer('(* foo bar *) *')
         token1 = lexer.getToken()
         token2 = lexer.getToken()
         token3 = lexer.getToken()
-        self.assertEqual(token1.text, '* foo bar *')
+        self.assertEqual(token1.text, '(* foo bar *)')
         self.assertEqual(token2.text, ' ')
         self.assertEqual(token3.text, '*')
 
