@@ -231,8 +231,7 @@ class Neg(UnaryExpression):
         >>> e.eval()
         0
         """
-        # TODO: Implement this method!
-        return None
+        return -self.exp.eval()
 
 class Not(UnaryExpression):
     """
