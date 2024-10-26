@@ -122,8 +122,7 @@ class Mul(BinaryExpression):
         >>> e.eval()
         12
         """
-        # TODO: Implement this method!
-        return None
+        return self.left.eval() * self.right.eval()
 
 class Div(BinaryExpression):
     """
