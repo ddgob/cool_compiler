@@ -144,8 +144,7 @@ class Div(BinaryExpression):
         >>> e.eval()
         5
         """
-        # TODO: Implement this method!
-        return None
+        return self.left.eval() // self.right.eval()
 
 class Leq(BinaryExpression):
     """
@@ -173,8 +172,7 @@ class Leq(BinaryExpression):
         >>> e.eval()
         False
         """
-        # TODO: Implement this method!
-        return None
+        return self.left.eval() <= self.right.eval()
 
 class Lth(BinaryExpression):
     """
