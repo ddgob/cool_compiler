@@ -36,8 +36,7 @@ class Num(Expression):
         >>> e.eval()
         3
         """
-        # TODO: Implement this method!
-        return None
+        return self.num
 
 class BinaryExpression(Expression):
     """
