@@ -200,8 +200,7 @@ class Lth(BinaryExpression):
         >>> e.eval()
         False
         """
-        # TODO: Implement this method!
-        return None
+        return self.left.eval() < self.right.eval()
 
 class UnaryExpression(Expression):
     """
