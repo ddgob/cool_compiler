@@ -250,5 +250,5 @@ class Not(UnaryExpression):
         >>> e.eval()
         True
         """
-        # TODO: Implement this method!
-        return None
+        return not self.exp.eval()
+
