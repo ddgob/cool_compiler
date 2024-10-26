@@ -72,8 +72,9 @@ class Eql(BinaryExpression):
         >>> e.eval()
         True
         """
-        # TODO: Implement this method!
-        return None
+        if self.left.eval() == self.right.eval():
+            return True
+        return False
 
 class Add(BinaryExpression):
     """
