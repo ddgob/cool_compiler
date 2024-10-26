@@ -106,8 +106,7 @@ class Sub(BinaryExpression):
         >>> e.eval()
         -1
         """
-        # TODO: Implement this method!
-        return None
+        return self.left.eval() - self.right.eval()
 
 class Mul(BinaryExpression):
     """
