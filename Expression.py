@@ -90,8 +90,7 @@ class Add(BinaryExpression):
         >>> e.eval()
         7
         """
-        # TODO: Implement this method!
-        return None
+        return self.left.eval() + self.right.eval()
 
 class Sub(BinaryExpression):
     """
