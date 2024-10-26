@@ -20,8 +20,7 @@ class Bln(Expression):
         >>> e.eval()
         True
         """
-        # TODO: Implement this method!
-        return None
+        return self.bln
 
 class Num(Expression):
     """
