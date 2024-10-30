@@ -42,12 +42,11 @@ class TokenType(enum.Enum):
 
 
 class Lexer:
-    
+
     def __init__(self, source):
         """
         The constructor of the lexer. It receives the string that shall be
         scanned.
-        TODO: You will need to implement this method.
         """
         self.input = source
         self.position = 0
@@ -75,11 +74,10 @@ class Lexer:
     def getToken(self):
         """
         Return the next token.
-        TODO: Implement this method!
         """
         if self.position >= self.length:
             return Token('', TokenType.EOF)
-        
+
         currentCharacter = self.input[self.position]
         self.position += 1
 
@@ -143,8 +141,8 @@ class Lexer:
             self.position += 1
             fourthCharAfterFIsE = self.input[self.position] == 'e'
             if (
-                firstCharAfterFIsA and 
-                secondCharAfterFIsL and 
+                firstCharAfterFIsA and
+                secondCharAfterFIsL and
                 thirdCharAfterFIsS and
                 fourthCharAfterFIsE
             ):
