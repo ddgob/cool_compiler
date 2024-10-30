@@ -7,7 +7,7 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from Lexer import Lexer, TokenType
 
 class TestLexer(unittest.TestCase):
-    
+
     def testEmptyInputNumberOfTokens(self):
         lexer = Lexer('')
         tokens = list(lexer.tokens())
@@ -92,7 +92,7 @@ class TestLexer(unittest.TestCase):
         lexer = Lexer('-- foo bar')
         tokens = list(lexer.tokens())
         self.assertEqual(len(tokens), 0)
-    
+
     def testNoSpaceSingleLineCommentInputNumberOfTokens(self):
         lexer = Lexer('--foobar')
         tokens = list(lexer.tokens())
@@ -127,7 +127,7 @@ class TestLexer(unittest.TestCase):
         lexer = Lexer('(* foo bar *)')
         tokens = list(lexer.tokens())
         self.assertEqual(len(tokens), 0)
-    
+
     def testNoSpaceBlockCommentInputNumberOfTokens(self):
         lexer = Lexer('(*foobar*)')
         tokens = list(lexer.tokens())
@@ -173,7 +173,7 @@ class TestLexer(unittest.TestCase):
         tokens = [token for token in lexer.tokens()]
         self.assertEqual(tokens[0].kind, TokenType.ADD)
         self.assertEqual(tokens[0].text, '+')
-    
+
     def testAddAndCommentAndNewLineInvertedInput(self):
         lexer = Lexer('-- foo bar\n +')
         tokens = [token for token in lexer.tokens()]
@@ -501,7 +501,7 @@ class TestLexer(unittest.TestCase):
         self.assertEqual(tokens[5].text, '4')
         self.assertEqual(tokens[6].text, ')')
         self.assertEqual(tokens[7].text, '\n')
-    
+
     def testTeacherExample6TokenType(self):
         lexer = Lexer('1 + 3 * (* laskdjf a;lk ;kl *) 5 - 1\n')
         tokens = list(lexer.tokens())
@@ -525,7 +525,7 @@ class TestLexer(unittest.TestCase):
         self.assertEqual(tokens[5].text, '-')
         self.assertEqual(tokens[6].text, '1')
         self.assertEqual(tokens[7].text, '\n')
-    
+
     def testTeacherExample7TokenType(self):
         lexer = Lexer('1 + (* laksdj fa;lskdjf alsdkjf\nlaskdjf\naslkdjf\nslkd  * lasdkjfa * ) akjd falskd f*)\n2\n')
         tokens = list(lexer.tokens())
