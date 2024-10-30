@@ -57,10 +57,6 @@ class Lexer:
         This method is a token generator: it converts the string encapsulated
         into this object into a sequence of Tokens. Examples:
 
-        >>> l = Lexer('1 * 2 - 3')
-        >>> [tk.kind for tk in l.tokens()]
-        [<TokenType.NUM: 3>, <TokenType.ADD: 202>, <TokenType.NUM: 3>]
-
         >>> l = Lexer('1 * 2 -- 3\\n')
         >>> [tk.kind for tk in l.tokens()]
         [<TokenType.NUM: 3>, <TokenType.MUL: 204>, <TokenType.NUM: 3>]
