@@ -131,16 +131,93 @@ class Parser:
         >>> exp = parser.parse()
         >>> exp.eval()
         True
-        """
-        """
-        Grammer for the parser:
-        bool_expr ::= 'not' bool_expr | comp_expr
-        comp_expr ::= exp '==' exp | exp '<' exp | exp '<=' exp | exp
-        exp       ::= term | term '+' exp | term '-' exp
-        term      ::= factor | factor '*' term | factor '/' term
-        factor    ::= '~' factor | '(' bool_expr ')' | num | boolean
-        boolean   ::= 'true' | 'false'
 
+        >>> env = {'x': 10}
+        >>> parser = Parser([Token('x', TokenType.VAR)])
+        >>> exp = parser.parse()
+        >>> exp.eval(env)
+        10
+
+        >>> env = {'y': False}
+        >>> parser = Parser([Token('y', TokenType.VAR)])
+        >>> exp = parser.parse()
+        >>> exp.eval(env)
+        False
+
+        >>> env = {'a': 5, 'b': 3}
+        >>> parser = Parser([Token('a', TokenType.VAR), Token('+', TokenType.ADD), Token('b', TokenType.VAR)])
+        >>> exp = parser.parse()
+        >>> exp.eval(env)
+        8
+
+        >>> env = {'z': 7}
+        >>> parser = Parser([Token('z', TokenType.VAR), Token('*', TokenType.MUL), Token('z', TokenType.VAR)])
+        >>> exp = parser.parse()
+        >>> exp.eval(env)
+        49
+
+        >>> env = {}
+        >>> parser = Parser([Token('w', TokenType.VAR)])
+        >>> exp = parser.parse()
+        >>> exp.eval(env)
+        Traceback (most recent call last):
+        ...
+        ValueError: Variavel inexistente w
+
+        >>> parser = Parser([
+        ...     Token('let', TokenType.LET), Token('x', TokenType.VAR), Token('<-', TokenType.ASS),
+        ...     Token('5', TokenType.NUM), Token('in', TokenType.INN),
+        ...     Token('x', TokenType.VAR), Token('+', TokenType.ADD), Token('3', TokenType.NUM),
+        ...     Token('end', TokenType.END)
+        ... ])
+        >>> exp = parser.parse()
+        >>> exp.eval()
+        8
+
+        >>> parser = Parser([
+        ...     Token('let', TokenType.LET), Token('x', TokenType.VAR), Token('<-', TokenType.ASS),
+        ...     Token('7', TokenType.NUM), Token('in', TokenType.INN),
+        ...     Token('x', TokenType.VAR), Token('*', TokenType.MUL), Token('x', TokenType.VAR),
+        ...     Token('end', TokenType.END)
+        ... ])
+        >>> exp = parser.parse()
+        >>> exp.eval()
+        49
+
+        >>> parser = Parser([
+        ...     Token('let', TokenType.LET), Token('a', TokenType.VAR), Token('<-', TokenType.ASS),
+        ...     Token('2', TokenType.NUM), Token('in', TokenType.INN),
+        ...     Token('let', TokenType.LET), Token('b', TokenType.VAR), Token('<-', TokenType.ASS),
+        ...     Token('3', TokenType.NUM), Token('in', TokenType.INN),
+        ...     Token('a', TokenType.VAR), Token('+', TokenType.ADD), Token('b', TokenType.VAR),
+        ...     Token('end', TokenType.END), Token('end', TokenType.END)
+        ... ])
+        >>> exp = parser.parse()
+        >>> exp.eval()
+        5
+
+        >>> parser = Parser([
+        ...     Token('let', TokenType.LET), Token('x', TokenType.VAR), Token('<-', TokenType.ASS),
+        ...     Token('10', TokenType.NUM), Token('in', TokenType.INN),
+        ...     Token('x', TokenType.VAR), Token('<=', TokenType.LEQ), Token('15', TokenType.NUM),
+        ...     Token('end', TokenType.END)
+        ... ])
+        >>> exp = parser.parse()
+        >>> exp.eval()
+        True
+
+        >>> parser = Parser([
+        ...     Token('let', TokenType.LET), Token('x', TokenType.VAR), Token('<-', TokenType.ASS),
+        ...     Token('5', TokenType.NUM), Token('in', TokenType.INN),
+        ...     Token('let', TokenType.LET), Token('y', TokenType.VAR), Token('<-', TokenType.ASS),
+        ...     Token('x', TokenType.VAR), Token('*', TokenType.MUL), Token('3', TokenType.NUM),
+        ...     Token('in', TokenType.INN), Token('y', TokenType.VAR), Token('end', TokenType.END),
+        ...     Token('+', TokenType.ADD), Token('2', TokenType.NUM),
+        ...     Token('end', TokenType.END)
+        ... ])
+        >>> exp = parser.parse()
+        >>> exp.eval()
+        17
 
         bool_expression         ::= 'not' bool_expression 
                                 | comparison_expression
@@ -161,7 +238,13 @@ class Parser:
         factor                  ::= '~' factor 
                                 | '(' bool_expression ')' 
                                 | number 
-                                | boolean_literal
+                                | boolean_literal 
+                                | variable 
+                                | let_expression
+        
+        let_expression          ::= 'let' variable '<-' bool_expression 'in' bool_expression 'end'
+
+        variable                ::= alpha (alpha | digit)*
 
         boolean_literal         ::= 'true' 
                                 | 'false'
@@ -190,15 +273,16 @@ class Parser:
     def comparison_expression(self):
         left = self.arithmetic_expression()
         
-        if self.match(TokenType.EQL):
-            right = self.arithmetic_expression()
-            return Eql(left, right)
-        elif self.match(TokenType.LTH):
-            right = self.arithmetic_expression()
-            return Lth(left, right)
-        elif self.match(TokenType.LEQ):
-            right = self.arithmetic_expression()
-            return Leq(left, right)
+        while self.current_token().kind in (TokenType.EQL, TokenType.LTH, TokenType.LEQ):
+            if self.match(TokenType.EQL):
+                right = self.arithmetic_expression()
+                left = Eql(left, right)
+            elif self.match(TokenType.LTH):
+                right = self.arithmetic_expression()
+                left = Lth(left, right)
+            elif self.match(TokenType.LEQ):
+                right = self.arithmetic_expression()
+                left = Leq(left, right)
         
         return left
 
@@ -217,7 +301,7 @@ class Parser:
 
     def term(self):
         left = self.factor()
-        
+
         while self.current_token().kind in (TokenType.MUL, TokenType.DIV):
             if self.match(TokenType.MUL):
                 right = self.factor()
@@ -244,5 +328,55 @@ class Parser:
             return Bln(True)
         elif self.match(TokenType.FLS):
             return Bln(False)
+        elif self.current_token().kind == TokenType.VAR:
+            var_name = self.current_token().text
+            self.advance()
+            return Var(var_name)
+        elif self.match(TokenType.LET):
+            return self.let_expression()
+        elif self.match(TokenType.NLN):
+            return self.factor()
         else:
             raise ValueError("Unexpected token: " + self.current_token().text)
+
+    def let_expression(self):
+        var_name = None
+        if self.current_token().kind == TokenType.VAR:
+            var_name = self.current_token().text
+            self.advance()
+        else:
+            raise ValueError("Expected variable name after 'let'")
+        
+        if not self.match(TokenType.ASS):
+            raise ValueError("Expected '<-' after variable name in 'let' expression")
+        
+        value_expr = self.bool_expression()
+        
+        if not self.match(TokenType.INN):
+            raise ValueError("Expected 'in' after value expression in 'let' expression")
+        
+        body_expr = self.bool_expression()
+        
+        if not self.match(TokenType.END):
+            raise ValueError("Expected 'end' after body expression in 'let' expression")
+        
+        return Let(var_name, value_expr, body_expr)
+
+if __name__ == "__main__":
+    parser = Parser([
+    Token('let', TokenType.LET),
+    Token('v', TokenType.VAR),
+    Token('<-', TokenType.ASS),
+    Token('1', TokenType.NUM),
+    Token('in', TokenType.INN),
+    Token('v', TokenType.VAR),
+    Token('+', TokenType.ADD),
+    Token('v', TokenType.VAR),
+    Token('end', TokenType.END)
+])
+    exp = parser.parse()
+    eval = exp.eval()
+    eval2 = 1
+
+
+
