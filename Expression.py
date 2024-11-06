@@ -250,3 +250,70 @@ class Not(UnaryExpression):
         """
         return not self.exp.eval(env)
 
+class Var(Expression):
+    def __init__(self, name):
+        self.name = name
+
+    def eval(self, env=None):
+        """
+        Example:
+        >>> env = {'x': 10}
+        >>> v = Var('x')
+        >>> v.eval(env)
+        10
+
+        >>> env = {'y': False}
+        >>> v = Var('y')
+        >>> v.eval(env)
+        False
+
+        >>> env = {}
+        >>> v = Var('z')
+        >>> v.eval(env)
+        Traceback (most recent call last):
+        ...
+        ValueError: Variavel inexistente z
+        """
+        if self.name in env:
+            return env[self.name]
+        else:
+            raise ValueError(f"Variavel inexistente {self.name}")
+
+class Let(Expression):
+    def __init__(self, var_name, value_expr, body_expr):
+        self.var_name = var_name
+        self.value_expr = value_expr
+        self.body_expr = body_expr
+
+    def eval(self, env=None):
+        """
+        Example:
+        >>> env = {}
+        >>> let_expr = Let("x", Num(5), Add(Var("x"), Num(3)))
+        >>> let_expr.eval(env)
+        8
+
+        >>> env = {'y': 10}
+        >>> let_expr = Let("x", Num(7), Mul(Var("x"), Var("y")))
+        >>> let_expr.eval(env)
+        70
+
+        >>> env = {}
+        >>> let_expr = Let("a", Num(2), Let("b", Num(3), Add(Var("a"), Var("b"))))
+        >>> let_expr.eval(env)
+        5
+
+        >>> env = {'x': 4}
+        >>> let_expr = Let("x", Num(10), Var("x"))
+        >>> let_expr.eval(env)
+        10
+
+        >>> env = {}
+        >>> let_expr = Let("x", Num(5), Leq(Var("x"), Num(10)))
+        >>> let_expr.eval(env)
+        True
+        """
+        val = self.value_expr.eval(env)
+        new_env = dict(env) if env is not None else {}
+        new_env[self.var_name] = val
+        return self.body_expr.eval(new_env)
