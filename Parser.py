@@ -132,4 +132,38 @@ class Parser:
         >>> exp.eval()
         True
         """
+        """
+        Grammer for the parser:
+        bool_expr ::= 'not' bool_expr | comp_expr
+        comp_expr ::= exp '==' exp | exp '<' exp | exp '<=' exp | exp
+        exp       ::= term | term '+' exp | term '-' exp
+        term      ::= factor | factor '*' term | factor '/' term
+        factor    ::= '~' factor | '(' bool_expr ')' | num | boolean
+        boolean   ::= 'true' | 'false'
+
+
+        bool_expression         ::= 'not' bool_expression 
+                                | comparison_expression
+
+        comparison_expression   ::= arithmetic_expression '==' arithmetic_expression 
+                                | arithmetic_expression '<' arithmetic_expression 
+                                | arithmetic_expression '<=' arithmetic_expression 
+                                | arithmetic_expression
+
+        arithmetic_expression   ::= term 
+                                | term '+' arithmetic_expression 
+                                | term '-' arithmetic_expression
+
+        term                    ::= factor 
+                                | factor '*' term 
+                                | factor '/' term
+
+        factor                  ::= '~' factor 
+                                | '(' bool_expression ')' 
+                                | number 
+                                | boolean_literal
+
+        boolean_literal         ::= 'true' 
+                                | 'false'
+        """
         return None
