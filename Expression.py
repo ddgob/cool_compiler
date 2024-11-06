@@ -2,7 +2,7 @@ from abc import ABC, abstractmethod
 
 class Expression(ABC):
     @abstractmethod
-    def eval(self):
+    def eval(self, env=None):
         raise NotImplementedError
 
 class Bln(Expression):
@@ -13,7 +13,7 @@ class Bln(Expression):
     """
     def __init__(self, bln):
         self.bln = bln
-    def eval(self):
+    def eval(self, env=None):
         """
         Example:
         >>> e = Bln(True)
@@ -29,7 +29,7 @@ class Num(Expression):
     """
     def __init__(self, num):
         self.num = num
-    def eval(self):
+    def eval(self, env=None):
         """
         Example:
         >>> e = Num(3)
@@ -48,7 +48,7 @@ class BinaryExpression(Expression):
         self.right = right
 
     @abstractmethod
-    def eval(self):
+    def eval(self, env=None):
         raise NotImplementedError
 
 class Eql(BinaryExpression):
@@ -57,7 +57,7 @@ class Eql(BinaryExpression):
     of such an expression is True if the subexpressions are the same, or false
     otherwise.
     """
-    def eval(self):
+    def eval(self, env=None):
         """
         Example:
         >>> n1 = Num(3)
@@ -72,16 +72,14 @@ class Eql(BinaryExpression):
         >>> e.eval()
         True
         """
-        if self.left.eval() == self.right.eval():
-            return True
-        return False
+        return self.left.eval(env) == self.right.eval(env)
 
 class Add(BinaryExpression):
     """
     This class represents addition of two expressions. The evaluation of such
     an expression is the addition of the two subexpression's values.
     """
-    def eval(self):
+    def eval(self, env=None):
         """
         Example:
         >>> n1 = Num(3)
@@ -90,14 +88,14 @@ class Add(BinaryExpression):
         >>> e.eval()
         7
         """
-        return self.left.eval() + self.right.eval()
+        return self.left.eval(env) + self.right.eval(env)
 
 class Sub(BinaryExpression):
     """
     This class represents subtraction of two expressions. The evaluation of such
     an expression is the subtraction of the two subexpression's values.
     """
-    def eval(self):
+    def eval(self, env=None):
         """
         Example:
         >>> n1 = Num(3)
@@ -106,14 +104,14 @@ class Sub(BinaryExpression):
         >>> e.eval()
         -1
         """
-        return self.left.eval() - self.right.eval()
+        return self.left.eval(env) - self.right.eval(env)
 
 class Mul(BinaryExpression):
     """
     This class represents multiplication of two expressions. The evaluation of
     such an expression is the product of the two subexpression's values.
     """
-    def eval(self):
+    def eval(self, env=None):
         """
         Example:
         >>> n1 = Num(3)
@@ -122,7 +120,7 @@ class Mul(BinaryExpression):
         >>> e.eval()
         12
         """
-        return self.left.eval() * self.right.eval()
+        return self.left.eval(env) * self.right.eval(env)
 
 class Div(BinaryExpression):
     """
@@ -130,7 +128,7 @@ class Div(BinaryExpression):
     evaluation of such an expression is the integer quocient of the two
     subexpression's values.
     """
-    def eval(self):
+    def eval(self, env=None):
         """
         Example:
         >>> n1 = Num(28)
@@ -144,7 +142,7 @@ class Div(BinaryExpression):
         >>> e.eval()
         5
         """
-        return self.left.eval() // self.right.eval()
+        return self.left.eval(env) // self.right.eval(env)
 
 class Leq(BinaryExpression):
     """
@@ -153,7 +151,7 @@ class Leq(BinaryExpression):
     boolean value that is true if the left operand is less than or equal the
     right operand. It is false otherwise.
     """
-    def eval(self):
+    def eval(self, env=None):
         """
         Example:
         >>> n1 = Num(3)
@@ -172,7 +170,7 @@ class Leq(BinaryExpression):
         >>> e.eval()
         False
         """
-        return self.left.eval() <= self.right.eval()
+        return self.left.eval(env) <= self.right.eval(env)
 
 class Lth(BinaryExpression):
     """
@@ -181,7 +179,7 @@ class Lth(BinaryExpression):
     boolean value that is true if the left operand is less than the right
     operand. It is false otherwise.
     """
-    def eval(self):
+    def eval(self, env=None):
         """
         Example:
         >>> n1 = Num(3)
@@ -200,7 +198,7 @@ class Lth(BinaryExpression):
         >>> e.eval()
         False
         """
-        return self.left.eval() < self.right.eval()
+        return self.left.eval(env) < self.right.eval(env)
 
 class UnaryExpression(Expression):
     """
@@ -211,7 +209,7 @@ class UnaryExpression(Expression):
         self.exp = exp
 
     @abstractmethod
-    def eval(self):
+    def eval(self, env=None):
         raise NotImplementedError
 
 class Neg(UnaryExpression):
@@ -219,7 +217,7 @@ class Neg(UnaryExpression):
     This expression represents the additive inverse of a number. The additive
     inverse of a number n is the number -n, so that the sum of both is zero.
     """
-    def eval(self):
+    def eval(self, env=None):
         """
         Example:
         >>> n = Num(3)
@@ -231,14 +229,14 @@ class Neg(UnaryExpression):
         >>> e.eval()
         0
         """
-        return -self.exp.eval()
+        return -self.exp.eval(env)
 
 class Not(UnaryExpression):
     """
     This expression represents the negation of a boolean. The negation of a
     boolean expression is the logical complement of that expression.
     """
-    def eval(self):
+    def eval(self, env=None):
         """
         Example:
         >>> t = Bln(True)
@@ -250,5 +248,5 @@ class Not(UnaryExpression):
         >>> e.eval()
         True
         """
-        return not self.exp.eval()
+        return not self.exp.eval(env)
 
