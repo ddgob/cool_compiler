@@ -39,6 +39,11 @@ class TokenType(enum.Enum):
     NOT = 209
     LPR = 210
     RPR = 211
+    LET = 300  # New token for 'let'
+    ASS = 301  # New token for '<-'
+    INN = 302  # New token for 'in'
+    END = 303  # New token for 'end'
+    VAR = 304  # New token for variables
 
 
 class Lexer:
@@ -110,42 +115,13 @@ class Lexer:
             if self.position < self.length and self.input[self.position] == '=':
                 self.position += 1
                 return Token('<=', TokenType.LEQ)
+            elif self.position < self.length and self.input[self.position] == '-':
+                self.position += 1
+                return Token('<-', TokenType.ASS)
             else:
                 return Token('<', TokenType.LTH)
         elif currentCharacter == '~':
             return Token('~', TokenType.NEG)
-        elif currentCharacter == 'n':
-            firstCharAfterN = self.input[self.position]
-            self.position += 1
-            secondCharAfterN = self.input[self.position]
-            if firstCharAfterN == 'o' and secondCharAfterN == 't':
-                self.position += 1
-                return Token('not', TokenType.NOT)
-        elif currentCharacter == 't':
-            firstCharAfterTIsR = self.input[self.position] == 'r'
-            self.position += 1
-            secondCharAfterTIsU = self.input[self.position] == 'u'
-            self.position += 1
-            thirdCharAfterTIsE = self.input[self.position] == 'e'
-            if firstCharAfterTIsR and secondCharAfterTIsU and thirdCharAfterTIsE:
-                self.position += 1
-                return Token('true', TokenType.TRU)
-        elif currentCharacter == 'f':
-            firstCharAfterFIsA = self.input[self.position] == 'a'
-            self.position += 1
-            secondCharAfterFIsL = self.input[self.position] == 'l'
-            self.position += 1
-            thirdCharAfterFIsS = self.input[self.position] == 's'
-            self.position += 1
-            fourthCharAfterFIsE = self.input[self.position] == 'e'
-            if (
-                firstCharAfterFIsA and
-                secondCharAfterFIsL and
-                thirdCharAfterFIsS and
-                fourthCharAfterFIsE
-            ):
-                self.position += 1
-                return Token('false', TokenType.FLS)
         elif currentCharacter == '(':
             if self.position < self.length and self.input[self.position] == '*':
                 self.position += 1
@@ -161,5 +137,23 @@ class Lexer:
             return Token('(', TokenType.LPR)
         elif currentCharacter == ')':
             return Token(')', TokenType.RPR)
+        elif currentCharacter.isalpha():
+            identifier = currentCharacter
+            while self.position < self.length and self.input[self.position].isalnum():
+                identifier += self.input[self.position]
+                self.position += 1
+            if identifier == "true":
+                return Token('true', TokenType.TRU)
+            elif identifier == "false":
+                return Token('false', TokenType.FLS)
+            elif identifier == 'not':
+                return Token('not', TokenType.NOT)
+            elif identifier == 'in':
+                return Token('in', TokenType.INN)
+            elif identifier == 'let':
+                return Token('let', TokenType.LET)
+            elif identifier == 'end':
+                return Token('end', TokenType.END)
+            return Token(identifier, TokenType.VAR)
         else:
             raise ValueError(f"Character not recognized: {currentCharacter}")
