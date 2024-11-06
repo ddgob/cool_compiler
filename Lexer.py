@@ -104,6 +104,8 @@ class Lexer:
             return Token('-', TokenType.SUB)
         elif currentCharacter == '\n':
             return Token('\n', TokenType.NLN)
+        elif currentCharacter == '=':
+            return Token('=', TokenType.EQL)
         elif currentCharacter == '<':
             if self.position < self.length and self.input[self.position] == '=':
                 self.position += 1
