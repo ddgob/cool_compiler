@@ -127,3 +127,79 @@ class EvalVisitor(Visitor):
         updated_env = dict(env)
         updated_env[exp.identifier] = def_val
         return exp.exp_body.accept(self, updated_env)
+
+class UseDefVisitor(Visitor):
+    """
+    The UseDefVisitor class reports the use of undefined variables. It takes
+    as input an environment of defined variables, and produces, as output,
+    the set of all the variables that are used without being defined.
+
+    Examples:
+    >>> e0 = Let('v', Add(Num(40), Num(2)), Mul(Var('v'), Var('v')))
+    >>> e1 = Not(Eql(e0, Num(1764)))
+    >>> ev = UseDefVisitor()
+    >>> len(e1.accept(ev, set()))
+    0
+
+    >>> e0 = Let('v', Add(Num(40), Num(2)), Sub(Var('v'), Num(2)))
+    >>> e1 = Lth(e0, Var('x'))
+    >>> ev = UseDefVisitor()
+    >>> len(e1.accept(ev, set()))
+    1
+
+    >>> e = Let('v', Add(Num(40), Var('v')), Sub(Var('v'), Num(2)))
+    >>> ev = UseDefVisitor()
+    >>> len(e.accept(ev, set()))
+    1
+
+    >>> e1 = Let('v', Add(Num(40), Var('v')), Sub(Var('v'), Num(2)))
+    >>> e0 = Let('v', Num(3), e1)
+    >>> ev = UseDefVisitor()
+    >>> len(e0.accept(ev, set()))
+    0
+    """
+
+    def visit_var(self, exp, env):
+        if exp.identifier not in env:
+            return set([exp.identifier])
+        return set()
+
+    def visit_bln(self, exp, env):
+        return set()
+
+    def visit_num(self, exp, env):
+        return set()
+
+    def visit_eql(self, exp, env):
+        return exp.left.accept(self, env) | exp.right.accept(self, env)
+
+    def visit_add(self, exp, env):
+        return exp.left.accept(self, env) | exp.right.accept(self, env)
+
+    def visit_sub(self, exp, env):
+        return exp.left.accept(self, env) | exp.right.accept(self, env)
+
+    def visit_mul(self, exp, env):
+        return exp.left.accept(self, env) | exp.right.accept(self, env)
+
+    def visit_div(self, exp, env):
+        return exp.left.accept(self, env) | exp.right.accept(self, env)
+
+    def visit_leq(self, exp, env):
+        return exp.left.accept(self, env) | exp.right.accept(self, env)
+
+    def visit_lth(self, exp, env):
+        return exp.left.accept(self, env) | exp.right.accept(self, env)
+
+    def visit_neg(self, exp, env):
+        return exp.exp.accept(self, env)
+
+    def visit_not(self, exp, env):
+        return exp.exp.accept(self, env)
+
+    def visit_let(self, exp, env):
+        u_def = exp.exp_def.accept(self, env)
+        updated_env = dict(env)
+        updated_env[exp.identifier] = None
+        u_body = exp.exp_body.accept(self, updated_env)
+        return u_def | u_body
