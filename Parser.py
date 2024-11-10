@@ -26,24 +26,28 @@ class Parser:
         Examples:
         >>> parser = Parser([Token('123', TokenType.NUM)])
         >>> exp = parser.parse()
-        >>> exp.eval()
+        >>> visitor = EvalVisitor()
+        >>> exp.accept(visitor, {})
         123
 
         >>> parser = Parser([Token('True', TokenType.TRU)])
         >>> exp = parser.parse()
-        >>> exp.eval()
+        >>> visitor = EvalVisitor()
+        >>> exp.accept(visitor, {})
         True
 
         >>> parser = Parser([Token('False', TokenType.FLS)])
         >>> exp = parser.parse()
-        >>> exp.eval()
+        >>> visitor = EvalVisitor()
+        >>> exp.accept(visitor, {})
         False
 
         >>> tk0 = Token('~', TokenType.NEG)
         >>> tk1 = Token('123', TokenType.NUM)
         >>> parser = Parser([tk0, tk1])
         >>> exp = parser.parse()
-        >>> exp.eval()
+        >>> visitor = EvalVisitor()
+        >>> exp.accept(visitor, {})
         -123
 
         >>> tk0 = Token('3', TokenType.NUM)
@@ -51,7 +55,8 @@ class Parser:
         >>> tk2 = Token('4', TokenType.NUM)
         >>> parser = Parser([tk0, tk1, tk2])
         >>> exp = parser.parse()
-        >>> exp.eval()
+        >>> visitor = EvalVisitor()
+        >>> exp.accept(visitor, {})
         12
 
         >>> tk0 = Token('3', TokenType.NUM)
@@ -60,7 +65,8 @@ class Parser:
         >>> tk3 = Token('4', TokenType.NUM)
         >>> parser = Parser([tk0, tk1, tk2, tk3])
         >>> exp = parser.parse()
-        >>> exp.eval()
+        >>> visitor = EvalVisitor()
+        >>> exp.accept(visitor, {})
         -12
 
         >>> tk0 = Token('30', TokenType.NUM)
@@ -68,7 +74,8 @@ class Parser:
         >>> tk2 = Token('4', TokenType.NUM)
         >>> parser = Parser([tk0, tk1, tk2])
         >>> exp = parser.parse()
-        >>> exp.eval()
+        >>> visitor = EvalVisitor()
+        >>> exp.accept(visitor, {})
         7
 
         >>> tk0 = Token('3', TokenType.NUM)
@@ -76,7 +83,8 @@ class Parser:
         >>> tk2 = Token('4', TokenType.NUM)
         >>> parser = Parser([tk0, tk1, tk2])
         >>> exp = parser.parse()
-        >>> exp.eval()
+        >>> visitor = EvalVisitor()
+        >>> exp.accept(visitor, {})
         7
 
         >>> tk0 = Token('30', TokenType.NUM)
@@ -84,7 +92,8 @@ class Parser:
         >>> tk2 = Token('4', TokenType.NUM)
         >>> parser = Parser([tk0, tk1, tk2])
         >>> exp = parser.parse()
-        >>> exp.eval()
+        >>> visitor = EvalVisitor()
+        >>> exp.accept(visitor, {})
         26
 
         >>> tk0 = Token('2', TokenType.NUM)
@@ -96,7 +105,8 @@ class Parser:
         >>> tk6 = Token(')', TokenType.RPR)
         >>> parser = Parser([tk0, tk1, tk2, tk3, tk4, tk5, tk6])
         >>> exp = parser.parse()
-        >>> exp.eval()
+        >>> visitor = EvalVisitor()
+        >>> exp.accept(visitor, {})
         14
 
         >>> tk0 = Token('4', TokenType.NUM)
@@ -104,7 +114,8 @@ class Parser:
         >>> tk2 = Token('4', TokenType.NUM)
         >>> parser = Parser([tk0, tk1, tk2])
         >>> exp = parser.parse()
-        >>> exp.eval()
+        >>> visitor = EvalVisitor()
+        >>> exp.accept(visitor, {})
         True
 
         >>> tk0 = Token('4', TokenType.NUM)
@@ -112,7 +123,8 @@ class Parser:
         >>> tk2 = Token('4', TokenType.NUM)
         >>> parser = Parser([tk0, tk1, tk2])
         >>> exp = parser.parse()
-        >>> exp.eval()
+        >>> visitor = EvalVisitor()
+        >>> exp.accept(visitor, {})
         True
 
         >>> tk0 = Token('4', TokenType.NUM)
@@ -120,7 +132,8 @@ class Parser:
         >>> tk2 = Token('4', TokenType.NUM)
         >>> parser = Parser([tk0, tk1, tk2])
         >>> exp = parser.parse()
-        >>> exp.eval()
+        >>> visitor = EvalVisitor()
+        >>> exp.accept(visitor, {})
         False
 
         >>> tk0 = Token('not', TokenType.NOT)
@@ -129,37 +142,43 @@ class Parser:
         >>> tk3 = Token('4', TokenType.NUM)
         >>> parser = Parser([tk0, tk1, tk2, tk3])
         >>> exp = parser.parse()
-        >>> exp.eval()
+        >>> visitor = EvalVisitor()
+        >>> exp.accept(visitor, {})
         True
 
         >>> env = {'x': 10}
         >>> parser = Parser([Token('x', TokenType.VAR)])
         >>> exp = parser.parse()
-        >>> exp.eval(env)
+        >>> visitor = EvalVisitor()
+        >>> exp.accept(visitor, env)
         10
 
         >>> env = {'y': False}
         >>> parser = Parser([Token('y', TokenType.VAR)])
         >>> exp = parser.parse()
-        >>> exp.eval(env)
+        >>> visitor = EvalVisitor()
+        >>> exp.accept(visitor, env)
         False
 
         >>> env = {'a': 5, 'b': 3}
         >>> parser = Parser([Token('a', TokenType.VAR), Token('+', TokenType.ADD), Token('b', TokenType.VAR)])
         >>> exp = parser.parse()
-        >>> exp.eval(env)
+        >>> visitor = EvalVisitor()
+        >>> exp.accept(visitor, env)
         8
 
         >>> env = {'z': 7}
         >>> parser = Parser([Token('z', TokenType.VAR), Token('*', TokenType.MUL), Token('z', TokenType.VAR)])
         >>> exp = parser.parse()
-        >>> exp.eval(env)
+        >>> visitor = EvalVisitor()
+        >>> exp.accept(visitor, env)
         49
 
         >>> env = {}
         >>> parser = Parser([Token('w', TokenType.VAR)])
         >>> exp = parser.parse()
-        >>> exp.eval(env)
+        >>> visitor = EvalVisitor()
+        >>> exp.accept(visitor, env)
         Traceback (most recent call last):
         ...
         ValueError: Variavel inexistente w
@@ -171,7 +190,8 @@ class Parser:
         ...     Token('end', TokenType.END)
         ... ])
         >>> exp = parser.parse()
-        >>> exp.eval()
+        >>> visitor = EvalVisitor()
+        >>> exp.accept(visitor, {})
         8
 
         >>> parser = Parser([
@@ -181,7 +201,8 @@ class Parser:
         ...     Token('end', TokenType.END)
         ... ])
         >>> exp = parser.parse()
-        >>> exp.eval()
+        >>> visitor = EvalVisitor()
+        >>> exp.accept(visitor, {})
         49
 
         >>> parser = Parser([
@@ -193,7 +214,8 @@ class Parser:
         ...     Token('end', TokenType.END), Token('end', TokenType.END)
         ... ])
         >>> exp = parser.parse()
-        >>> exp.eval()
+        >>> visitor = EvalVisitor()
+        >>> exp.accept(visitor, {})
         5
 
         >>> parser = Parser([
@@ -203,7 +225,8 @@ class Parser:
         ...     Token('end', TokenType.END)
         ... ])
         >>> exp = parser.parse()
-        >>> exp.eval()
+        >>> visitor = EvalVisitor()
+        >>> exp.accept(visitor, {})
         True
 
         >>> parser = Parser([
@@ -216,7 +239,8 @@ class Parser:
         ...     Token('end', TokenType.END)
         ... ])
         >>> exp = parser.parse()
-        >>> exp.eval()
+        >>> visitor = EvalVisitor()
+        >>> exp.accept(visitor, {})
         17
 
         bool_expression         ::= 'not' bool_expression 
