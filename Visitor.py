@@ -203,3 +203,27 @@ class UseDefVisitor(Visitor):
         updated_env[exp.identifier] = None
         u_body = exp.exp_body.accept(self, updated_env)
         return u_def | u_body
+
+def safe_eval(exp):
+    """
+    This method applies one simple semantic analysis onto an expression, before
+    evaluating it: it checks if the expression contains free variables, there
+    is, variables used without being defined.
+
+    Example:
+    >>> e0 = Let('v', Add(Num(40), Num(2)), Mul(Var('v'), Var('v')))
+    >>> e1 = Not(Eql(e0, Num(1764)))
+    >>> safe_eval(e1)
+    Value is False
+
+    >>> e0 = Let('v', Add(Num(40), Num(2)), Sub(Var('v'), Num(2)))
+    >>> e1 = Lth(e0, Var('x'))
+    >>> safe_eval(e1)
+    Error: expression contains undefined variables.
+    """
+    use_def_visitor = UseDefVisitor()
+    if len(exp.accept(use_def_visitor, set())) > 0:
+        print("Error: expression contains undefined variables.")
+    else:
+        eval_visitor = EvalVisitor()
+        print(f"Value is {exp.accept(eval_visitor, {})}")
