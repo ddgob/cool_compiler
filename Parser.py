@@ -243,10 +243,24 @@ class Parser:
         >>> exp.accept(visitor, {})
         17
 
-        comparison_expression   ::= arithmetic_expression '==' arithmetic_expression 
-                          | arithmetic_expression '<' arithmetic_expression 
-                          | arithmetic_expression '<=' arithmetic_expression 
-                          | arithmetic_expression
+
+        bool_expression         ::= if_then_else_expression
+                                | or_expression
+
+        if_then_else_expression ::= 'if' or_expression 'then' or_expression 'else' or_expression
+
+        or_expression           ::= and_expression
+                                | and_expression 'or' or_expression
+
+        and_expression          ::= eql_expression
+                                | eql_expression 'and' and_expression
+
+        eql_expression          ::= comparison_expression
+                                | comparison_expression '==' comparison_expression
+
+        comparison_expression   ::= arithmetic_expression '<' arithmetic_expression 
+                                | arithmetic_expression '<=' arithmetic_expression 
+                                | arithmetic_expression
 
         arithmetic_expression   ::= term 
                                 | term '+' arithmetic_expression 
@@ -271,11 +285,15 @@ class Parser:
         boolean_literal         ::= 'true'
                                 | 'false'
         """
-        return self.comparison_expression()
+        return self.bool_expression()
     
     def advance(self):
         if self.cur_token_idx < len(self.tokens) - 1:
             self.cur_token_idx += 1
+
+    def advance_newlines(self):
+        while self.current_token().kind == TokenType.NLN and self.cur_token_idx < len(self.tokens) - 1:
+            self.advance()
 
     def current_token(self):
         return self.tokens[self.cur_token_idx]
@@ -285,15 +303,70 @@ class Parser:
             self.advance()
             return True
         return False
+    
+    def bool_expression(self):
+        if self.current_token().kind == TokenType.IFX:
+            return self.if_then_else_expression()
+        return self.or_expression()
+        
+    def if_then_else_expression(self):
+        if not self.match(TokenType.IFX):
+            sys.exit(f"Parse error")
+        
+        condition = self.bool_expression()
+
+        self.advance_newlines()
+        
+        if not self.match(TokenType.THN):
+            sys.exit(f"Parse error")
+        
+        then_expr = self.bool_expression()
+
+        self.advance_newlines()
+        
+        if not self.match(TokenType.ELS):
+            sys.exit(f"Parse error")
+        
+        else_expr = self.bool_expression()
+
+        self.advance_newlines()
+        
+        return IfThenElse(condition, then_expr, else_expr)
+
+    def or_expression(self):
+        left = self.and_expression()
+        
+        while self.current_token().kind == TokenType.ORX:
+            self.advance()
+            right = self.and_expression()
+            left = Or(left, right)
+        
+        return left
+    
+    def and_expression(self):
+        left = self.eql_expression()
+        
+        while self.current_token().kind == TokenType.AND:
+            self.advance()
+            right = self.eql_expression()
+            left = And(left, right)
+        
+        return left
+    
+    def eql_expression(self):
+        left = self.comparison_expression()
+        
+        if self.match(TokenType.EQL):
+            right = self.comparison_expression()
+            return Eql(left, right)
+        
+        return left
 
     def comparison_expression(self):
         left = self.arithmetic_expression()
         
-        while self.current_token().kind in (TokenType.EQL, TokenType.LTH, TokenType.LEQ):
-            if self.match(TokenType.EQL):
-                right = self.arithmetic_expression()
-                left = Eql(left, right)
-            elif self.match(TokenType.LTH):
+        while self.current_token().kind in (TokenType.LTH, TokenType.LEQ):
+            if self.match(TokenType.LTH):
                 right = self.arithmetic_expression()
                 left = Lth(left, right)
             elif self.match(TokenType.LEQ):
@@ -334,7 +407,7 @@ class Parser:
         if self.match(TokenType.NEG):
             return Neg(self.factor())
         elif self.match(TokenType.LPR):
-            expr = self.comparison_expression()
+            expr = self.bool_expression()
             if not self.match(TokenType.RPR):
                 raise ValueError("Expected closing parenthesis")
             return expr
@@ -355,30 +428,36 @@ class Parser:
         elif self.match(TokenType.NLN):
             return self.factor()
         else:
-            raise ValueError("Unexpected token: " + self.current_token().text)
+            sys.exit(f"Parse error")
 
     def let_expression(self):
+
+        self.advance_newlines()
+
         var_name = None
         if self.current_token().kind == TokenType.VAR:
             var_name = self.current_token().text
             self.advance()
         else:
-            raise ValueError("Expected variable name after 'let'")
+            sys.exit(f"Parse error")
         
-        if not self.match(TokenType.ASS):
-            raise ValueError("Expected '<-' after variable name in 'let' expression")
+        if not self.match(TokenType.ASN):
+            sys.exit(f"Parse error")
         
-        value_expr = self.comparison_expression()
+        value_expr = self.bool_expression()
+
+        self.advance_newlines()
         
-        if not self.match(TokenType.INN):
-            raise ValueError("Expected 'in' after value expression in 'let' expression")
+        if not self.match(TokenType.INX):
+            sys.exit(f"Parse error")
+
+        self.advance_newlines()
         
-        body_expr = self.comparison_expression()
+        body_expr = self.bool_expression()
+
+        self.advance_newlines()
         
         if not self.match(TokenType.END):
-            raise ValueError("Expected 'end' after body expression in 'let' expression")
+            sys.exit(f"Parse error")
         
         return Let(var_name, value_expr, body_expr)
-
-
-
