@@ -40,15 +40,15 @@ class TokenType(enum.Enum):
     LPR = 210
     RPR = 211
     LET = 300  # New token for 'let'
-    ASS = 301  # New token for '<-'
-    INN = 302  # New token for 'in'
+    ASN = 301  # New token for '<-'
+    INX = 302  # New token for 'in'
     END = 303  # New token for 'end'
     VAR = 304  # New token for variables
-    IFC = 400  # New token for 'if'
+    IFX = 400  # New token for 'if'
     THN = 401  # New token for 'then'
     ELS = 402  # New token for 'else'
     AND = 403  # New token for 'and'
-    OOR = 404  # New token for 'or'
+    ORX = 404  # New token for 'or'
 
 
 class Lexer:
@@ -122,7 +122,7 @@ class Lexer:
                 return Token('<=', TokenType.LEQ)
             elif self.position < self.length and self.input[self.position] == '-':
                 self.position += 1
-                return Token('<-', TokenType.ASS)
+                return Token('<-', TokenType.ASN)
             else:
                 return Token('<', TokenType.LTH)
         elif currentCharacter == '~':
@@ -154,13 +154,13 @@ class Lexer:
             elif identifier == 'not':
                 return Token('not', TokenType.NOT)
             elif identifier == 'in':
-                return Token('in', TokenType.INN)
+                return Token('in', TokenType.INX)
             elif identifier == 'let':
                 return Token('let', TokenType.LET)
             elif identifier == 'end':
                 return Token('end', TokenType.END)
             elif identifier == 'if':
-                return Token('if', TokenType.IFC)
+                return Token('if', TokenType.IFX)
             elif identifier == 'then':
                 return Token('then', TokenType.THN)
             elif identifier == 'else':
@@ -168,7 +168,7 @@ class Lexer:
             elif identifier == 'and':
                 return Token('and', TokenType.AND)
             elif identifier == 'or':
-                return Token('or', TokenType.OOR)
+                return Token('or', TokenType.ORX)
             return Token(identifier, TokenType.VAR)
         else:
             raise ValueError(f"Character not recognized: {currentCharacter}")
