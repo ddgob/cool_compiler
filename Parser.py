@@ -243,11 +243,21 @@ class Parser:
         >>> exp.accept(visitor, {})
         17
 
-        bool_expression         ::= 'not' bool_expression 
-                                | comparison_expression
+        bool_expression         ::= if_then_else_expression
+                                | or_expression
 
-        comparison_expression   ::= arithmetic_expression '==' arithmetic_expression 
-                                | arithmetic_expression '<' arithmetic_expression 
+        if_then_else_expression ::= 'if' or_expression 'then' or_expression 'else' or_expression
+
+        or_expression           ::= and_expression
+                                | and_expression 'or' or_expression
+
+        and_expression          ::= eql_expression
+                                | eql_expression 'and' and_expression
+
+        eql_expression          ::= comparison_expression
+                                | comparison_expression '==' comparison_expression
+
+        comparison_expression   ::= arithmetic_expression '<' arithmetic_expression 
                                 | arithmetic_expression '<=' arithmetic_expression 
                                 | arithmetic_expression
 
@@ -259,21 +269,22 @@ class Parser:
                                 | factor '*' term 
                                 | factor '/' term
 
-        factor                  ::= '~' factor 
+        factor                  ::= 'not' factor 
+                                | '~' factor 
                                 | '(' bool_expression ')' 
                                 | number 
                                 | boolean_literal 
                                 | variable 
                                 | let_expression
-        
+
         let_expression          ::= 'let' variable '<-' bool_expression 'in' bool_expression 'end'
 
         variable                ::= alpha (alpha | digit)*
 
-        boolean_literal         ::= 'true' 
+        boolean_literal         ::= 'true'
                                 | 'false'
         """
-        return self.bool_expression()
+        return self.comparison_expression()
     
     def advance(self):
         if self.cur_token_idx < len(self.tokens) - 1:
@@ -287,12 +298,6 @@ class Parser:
             self.advance()
             return True
         return False
-
-    def bool_expression(self):
-        if self.match(TokenType.NOT):
-            return Not(self.bool_expression())
-        else:
-            return self.comparison_expression()
 
     def comparison_expression(self):
         left = self.arithmetic_expression()
@@ -337,6 +342,8 @@ class Parser:
         return left
 
     def factor(self):
+        if self.match(TokenType.NOT):
+            return Not(self.factor())
         if self.match(TokenType.NEG):
             return Neg(self.factor())
         elif self.match(TokenType.LPR):
@@ -385,22 +392,6 @@ class Parser:
             raise ValueError("Expected 'end' after body expression in 'let' expression")
         
         return Let(var_name, value_expr, body_expr)
-
-if __name__ == "__main__":
-    parser = Parser([
-    Token('let', TokenType.LET),
-    Token('v', TokenType.VAR),
-    Token('<-', TokenType.ASS),
-    Token('1', TokenType.NUM),
-    Token('in', TokenType.INN),
-    Token('v', TokenType.VAR),
-    Token('+', TokenType.ADD),
-    Token('v', TokenType.VAR),
-    Token('end', TokenType.END)
-])
-    exp = parser.parse()
-    eval = exp.eval()
-    eval2 = 1
 
 
 
