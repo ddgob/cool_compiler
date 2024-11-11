@@ -83,11 +83,16 @@ class EvalVisitor(Visitor):
     >>> e1.accept(ev, {'x': 41})
     True
     """
+
+    def check_type(self, val, expected_type):
+        if not type(val) == expected_type:
+            sys.exit("Type error")
+
     def visit_var(self, exp, env):
         if exp.identifier in env:
             return env[exp.identifier]
         else:
-            raise ValueError(f"Variavel inexistente {exp.identifier}")
+            sys.exit(f"Def error")
 
     def visit_bln(self, exp, env):
         return exp.bln
@@ -96,31 +101,67 @@ class EvalVisitor(Visitor):
         return exp.num
 
     def visit_eql(self, exp, env):
-        return exp.left.accept(self, env) == exp.right.accept(self, env)
+        left = exp.left.accept(self, env)
+        right = exp.right.accept(self, env)
+        if type(left) == int:
+            self.check_type(right, int)
+        elif type(left) == bool:
+            self.check_type(right, bool)
+        else:
+            sys.exit("Type error")
+        return left == right
 
     def visit_add(self, exp, env):
-        return exp.left.accept(self, env) + exp.right.accept(self, env)
+        left = exp.left.accept(self, env)
+        right = exp.right.accept(self, env)
+        self.check_type(left, int)
+        self.check_type(right, int)
+        return left + right
 
     def visit_sub(self, exp, env):
-        return exp.left.accept(self, env) - exp.right.accept(self, env)
+        left = exp.left.accept(self, env)
+        right = exp.right.accept(self, env)
+        self.check_type(left, int)
+        self.check_type(right, int)
+        return left - right
 
     def visit_mul(self, exp, env):
-        return exp.left.accept(self, env) * exp.right.accept(self, env)
+        left = exp.left.accept(self, env)
+        right = exp.right.accept(self, env)
+        self.check_type(left, int)
+        self.check_type(right, int)
+        return left * right
 
     def visit_div(self, exp, env):
-        return exp.left.accept(self, env) // exp.right.accept(self, env)
+        left = exp.left.accept(self, env)
+        right = exp.right.accept(self, env)
+        self.check_type(left, int)
+        self.check_type(right, int)
+        return left // right
 
     def visit_leq(self, exp, env):
-        return exp.left.accept(self, env) <= exp.right.accept(self, env)
+        left = exp.left.accept(self, env)
+        right = exp.right.accept(self, env)
+        self.check_type(left, int)
+        self.check_type(right, int)
+        return left <= right
 
     def visit_lth(self, exp, env):
-        return exp.left.accept(self, env) < exp.right.accept(self, env)
+        left = exp.left.accept(self, env)
+        right = exp.right.accept(self, env)
+        self.check_type(left, int)
+        self.check_type(right, int)
+        return left < right
 
     def visit_neg(self, exp, env):
-        return -exp.exp.accept(self, env)
+        eval = exp.exp.accept(self, env)
+        self.check_type(eval, int)
+        return -eval
 
     def visit_not(self, exp, env):
-        return not exp.exp.accept(self, env)
+        eval = exp.exp.accept(self, env)
+        self.check_type(eval, bool)
+        return not eval
 
     def visit_let(self, exp, env):
         def_val = exp.exp_def.accept(self, env)
