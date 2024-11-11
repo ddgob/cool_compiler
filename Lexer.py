@@ -44,6 +44,11 @@ class TokenType(enum.Enum):
     INN = 302  # New token for 'in'
     END = 303  # New token for 'end'
     VAR = 304  # New token for variables
+    IFC = 400  # New token for 'if'
+    THN = 401  # New token for 'then'
+    ELS = 402  # New token for 'else'
+    AND = 403  # New token for 'and'
+    OOR = 404  # New token for 'or'
 
 
 class Lexer:
@@ -154,6 +159,16 @@ class Lexer:
                 return Token('let', TokenType.LET)
             elif identifier == 'end':
                 return Token('end', TokenType.END)
+            elif identifier == 'if':
+                return Token('if', TokenType.IFC)
+            elif identifier == 'then':
+                return Token('then', TokenType.THN)
+            elif identifier == 'else':
+                return Token('else', TokenType.ELS)
+            elif identifier == 'and':
+                return Token('and', TokenType.AND)
+            elif identifier == 'or':
+                return Token('or', TokenType.OOR)
             return Token(identifier, TokenType.VAR)
         else:
             raise ValueError(f"Character not recognized: {currentCharacter}")
