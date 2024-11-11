@@ -237,6 +237,46 @@ class Lth(BinaryExpression):
         False
         """
         return visitor.visit_lth(self, arg)
+    
+class Or(BinaryExpression):
+    """
+    This class represents the logical OR operator. The acceptuation of such an
+    expression is the logical OR of the two subexpression's values.
+    """
+    def accept(self, visitor, arg):
+        """
+        Example:
+        >>> t = Bln(True)
+        >>> f = Bln(False)
+        >>> e = Or(t, f)
+        >>> ev = EvalVisitor()
+        >>> e.accept(ev, None)
+        True
+        >>> e = Or(f, f)
+        >>> e.accept(ev, None)
+        False
+        """
+        return visitor.visit_or(self, arg)
+    
+class And(BinaryExpression):
+    """
+    This class represents the logical AND operator. The acceptuation of such an
+    expression is the logical AND of the two subexpression's values.
+    """
+    def accept(self, visitor, arg):
+        """
+        Example:
+        >>> t = Bln(True)
+        >>> f = Bln(False)
+        >>> e = And(t, f)
+        >>> ev = EvalVisitor()
+        >>> e.accept(ev, None)
+        False
+        >>> e = And(t, t)
+        >>> e.accept(ev, None)
+        True
+        """
+        return visitor.visit_and(self, arg)
 
 class UnaryExpression(Expression):
     """
@@ -322,3 +362,32 @@ class Let(Expression):
         1764
         """
         return visitor.visit_let(self, arg)
+    
+class IfThenElse(Expression):
+    """
+    This class represents a conditional expression. The semantics an expression
+    such as 'if B then E0 else E1' is as follows:
+    1. Evaluate B. Call the result ValueB.
+    2. If ValueB is True, then evalute E0 and return the result.
+    3. If ValueB is False, then evaluate E1 and return the result.
+    Notice that we only evaluate one of the two sub-expressions, not both. Thus,
+    "if True then 0 else 1 div 0" will return 0 indeed.
+    """
+    def __init__(self, cond, e0, e1):
+        self.cond = cond
+        self.e0 = e0
+        self.e1 = e1
+    def accept(self, visitor, arg):
+        """
+        Example:
+        >>> e = visit_if_then_else(Bln(True), Num(42), Num(30))
+        >>> ev = EvalVisitor()
+        >>> e.accept(ev, {})
+        42
+
+        >>> e = visit_if_then_else(Bln(False), Num(42), Num(30))
+        >>> ev = EvalVisitor()
+        >>> e.accept(ev, {})
+        30
+        """
+        return visitor.visit_if_then_else(self, arg)
