@@ -168,6 +168,35 @@ class EvalVisitor(Visitor):
         updated_env = dict(env)
         updated_env[exp.identifier] = def_val
         return exp.exp_body.accept(self, updated_env)
+    
+    def visit_if_then_else(self, exp, env):
+        condition = exp.cond.accept(self, env)
+        self.check_type(condition, bool)
+        if condition:
+            return exp.e0.accept(self, env)
+        else:
+            return exp.e1.accept(self, env)
+    
+    def visit_and(self, exp, env):
+        left = exp.left.accept(self, env)
+        self.check_type(left, bool)
+        # Short circuit and 
+        if left:
+            right = exp.right.accept(self, env)
+            self.check_type(right, bool)
+            return right
+        return False
+
+    def visit_or(self, exp, env):
+        left = exp.left.accept(self, env)
+        self.check_type(left, bool)
+        # Short circuit or
+        if left: 
+            return True
+        right = exp.right.accept(self, env)
+        self.check_type(right, bool)
+        return right
+
 
 class UseDefVisitor(Visitor):
     """
