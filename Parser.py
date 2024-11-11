@@ -243,23 +243,10 @@ class Parser:
         >>> exp.accept(visitor, {})
         17
 
-        bool_expression         ::= if_then_else_expression
-                                | or_expression
-
-        if_then_else_expression ::= 'if' or_expression 'then' or_expression 'else' or_expression
-
-        or_expression           ::= and_expression
-                                | and_expression 'or' or_expression
-
-        and_expression          ::= eql_expression
-                                | eql_expression 'and' and_expression
-
-        eql_expression          ::= comparison_expression
-                                | comparison_expression '==' comparison_expression
-
-        comparison_expression   ::= arithmetic_expression '<' arithmetic_expression 
-                                | arithmetic_expression '<=' arithmetic_expression 
-                                | arithmetic_expression
+        comparison_expression   ::= arithmetic_expression '==' arithmetic_expression 
+                          | arithmetic_expression '<' arithmetic_expression 
+                          | arithmetic_expression '<=' arithmetic_expression 
+                          | arithmetic_expression
 
         arithmetic_expression   ::= term 
                                 | term '+' arithmetic_expression 
@@ -347,7 +334,7 @@ class Parser:
         if self.match(TokenType.NEG):
             return Neg(self.factor())
         elif self.match(TokenType.LPR):
-            expr = self.bool_expression()
+            expr = self.comparison_expression()
             if not self.match(TokenType.RPR):
                 raise ValueError("Expected closing parenthesis")
             return expr
@@ -381,12 +368,12 @@ class Parser:
         if not self.match(TokenType.ASS):
             raise ValueError("Expected '<-' after variable name in 'let' expression")
         
-        value_expr = self.bool_expression()
+        value_expr = self.comparison_expression()
         
         if not self.match(TokenType.INN):
             raise ValueError("Expected 'in' after value expression in 'let' expression")
         
-        body_expr = self.bool_expression()
+        body_expr = self.comparison_expression()
         
         if not self.match(TokenType.END):
             raise ValueError("Expected 'end' after body expression in 'let' expression")
