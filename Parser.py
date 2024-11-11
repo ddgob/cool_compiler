@@ -144,7 +144,9 @@ class Parser:
         >>> exp = parser.parse()
         >>> visitor = EvalVisitor()
         >>> exp.accept(visitor, {})
-        True
+        Traceback (most recent call last):
+        ...
+        SystemExit: Type error
 
         >>> env = {'x': 10}
         >>> parser = Parser([Token('x', TokenType.VAR)])
@@ -181,11 +183,11 @@ class Parser:
         >>> exp.accept(visitor, env)
         Traceback (most recent call last):
         ...
-        ValueError: Variavel inexistente w
+        SystemExit: Def error
 
         >>> parser = Parser([
-        ...     Token('let', TokenType.LET), Token('x', TokenType.VAR), Token('<-', TokenType.ASS),
-        ...     Token('5', TokenType.NUM), Token('in', TokenType.INN),
+        ...     Token('let', TokenType.LET), Token('x', TokenType.VAR), Token('<-', TokenType.ASN),
+        ...     Token('5', TokenType.NUM), Token('in', TokenType.INX),
         ...     Token('x', TokenType.VAR), Token('+', TokenType.ADD), Token('3', TokenType.NUM),
         ...     Token('end', TokenType.END)
         ... ])
@@ -195,8 +197,8 @@ class Parser:
         8
 
         >>> parser = Parser([
-        ...     Token('let', TokenType.LET), Token('x', TokenType.VAR), Token('<-', TokenType.ASS),
-        ...     Token('7', TokenType.NUM), Token('in', TokenType.INN),
+        ...     Token('let', TokenType.LET), Token('x', TokenType.VAR), Token('<-', TokenType.ASN),
+        ...     Token('7', TokenType.NUM), Token('in', TokenType.INX),
         ...     Token('x', TokenType.VAR), Token('*', TokenType.MUL), Token('x', TokenType.VAR),
         ...     Token('end', TokenType.END)
         ... ])
@@ -206,10 +208,10 @@ class Parser:
         49
 
         >>> parser = Parser([
-        ...     Token('let', TokenType.LET), Token('a', TokenType.VAR), Token('<-', TokenType.ASS),
-        ...     Token('2', TokenType.NUM), Token('in', TokenType.INN),
-        ...     Token('let', TokenType.LET), Token('b', TokenType.VAR), Token('<-', TokenType.ASS),
-        ...     Token('3', TokenType.NUM), Token('in', TokenType.INN),
+        ...     Token('let', TokenType.LET), Token('a', TokenType.VAR), Token('<-', TokenType.ASN),
+        ...     Token('2', TokenType.NUM), Token('in', TokenType.INX),
+        ...     Token('let', TokenType.LET), Token('b', TokenType.VAR), Token('<-', TokenType.ASN),
+        ...     Token('3', TokenType.NUM), Token('in', TokenType.INX),
         ...     Token('a', TokenType.VAR), Token('+', TokenType.ADD), Token('b', TokenType.VAR),
         ...     Token('end', TokenType.END), Token('end', TokenType.END)
         ... ])
@@ -219,8 +221,8 @@ class Parser:
         5
 
         >>> parser = Parser([
-        ...     Token('let', TokenType.LET), Token('x', TokenType.VAR), Token('<-', TokenType.ASS),
-        ...     Token('10', TokenType.NUM), Token('in', TokenType.INN),
+        ...     Token('let', TokenType.LET), Token('x', TokenType.VAR), Token('<-', TokenType.ASN),
+        ...     Token('10', TokenType.NUM), Token('in', TokenType.INX),
         ...     Token('x', TokenType.VAR), Token('<=', TokenType.LEQ), Token('15', TokenType.NUM),
         ...     Token('end', TokenType.END)
         ... ])
@@ -230,11 +232,11 @@ class Parser:
         True
 
         >>> parser = Parser([
-        ...     Token('let', TokenType.LET), Token('x', TokenType.VAR), Token('<-', TokenType.ASS),
-        ...     Token('5', TokenType.NUM), Token('in', TokenType.INN),
-        ...     Token('let', TokenType.LET), Token('y', TokenType.VAR), Token('<-', TokenType.ASS),
+        ...     Token('let', TokenType.LET), Token('x', TokenType.VAR), Token('<-', TokenType.ASN),
+        ...     Token('5', TokenType.NUM), Token('in', TokenType.INX),
+        ...     Token('let', TokenType.LET), Token('y', TokenType.VAR), Token('<-', TokenType.ASN),
         ...     Token('x', TokenType.VAR), Token('*', TokenType.MUL), Token('3', TokenType.NUM),
-        ...     Token('in', TokenType.INN), Token('y', TokenType.VAR), Token('end', TokenType.END),
+        ...     Token('in', TokenType.INX), Token('y', TokenType.VAR), Token('end', TokenType.END),
         ...     Token('+', TokenType.ADD), Token('2', TokenType.NUM),
         ...     Token('end', TokenType.END)
         ... ])
@@ -243,6 +245,301 @@ class Parser:
         >>> exp.accept(visitor, {})
         17
 
+        >>> parser = Parser([Token('123', TokenType.NUM)])
+        >>> exp = parser.parse()
+        >>> ev = EvalVisitor()
+        >>> exp.accept(ev, None)
+        123
+
+        >>> parser = Parser([Token('True', TokenType.TRU)])
+        >>> exp = parser.parse()
+        >>> ev = EvalVisitor()
+        >>> exp.accept(ev, None)
+        True
+
+        >>> parser = Parser([Token('False', TokenType.FLS)])
+        >>> exp = parser.parse()
+        >>> ev = EvalVisitor()
+        >>> exp.accept(ev, None)
+        False
+
+        >>> tk0 = Token('~', TokenType.NEG)
+        >>> tk1 = Token('123', TokenType.NUM)
+        >>> parser = Parser([tk0, tk1])
+        >>> exp = parser.parse()
+        >>> ev = EvalVisitor()
+        >>> exp.accept(ev, None)
+        -123
+
+        >>> tk0 = Token('3', TokenType.NUM)
+        >>> tk1 = Token('*', TokenType.MUL)
+        >>> tk2 = Token('4', TokenType.NUM)
+        >>> parser = Parser([tk0, tk1, tk2])
+        >>> exp = parser.parse()
+        >>> ev = EvalVisitor()
+        >>> exp.accept(ev, None)
+        12
+
+        >>> tk0 = Token('3', TokenType.NUM)
+        >>> tk1 = Token('*', TokenType.MUL)
+        >>> tk2 = Token('~', TokenType.NEG)
+        >>> tk3 = Token('4', TokenType.NUM)
+        >>> parser = Parser([tk0, tk1, tk2, tk3])
+        >>> exp = parser.parse()
+        >>> ev = EvalVisitor()
+        >>> exp.accept(ev, None)
+        -12
+
+        >>> tk0 = Token('30', TokenType.NUM)
+        >>> tk1 = Token('/', TokenType.DIV)
+        >>> tk2 = Token('4', TokenType.NUM)
+        >>> parser = Parser([tk0, tk1, tk2])
+        >>> exp = parser.parse()
+        >>> ev = EvalVisitor()
+        >>> exp.accept(ev, None)
+        7
+
+        >>> tk0 = Token('3', TokenType.NUM)
+        >>> tk1 = Token('+', TokenType.ADD)
+        >>> tk2 = Token('4', TokenType.NUM)
+        >>> parser = Parser([tk0, tk1, tk2])
+        >>> exp = parser.parse()
+        >>> ev = EvalVisitor()
+        >>> exp.accept(ev, None)
+        7
+
+        >>> tk0 = Token('30', TokenType.NUM)
+        >>> tk1 = Token('-', TokenType.SUB)
+        >>> tk2 = Token('4', TokenType.NUM)
+        >>> parser = Parser([tk0, tk1, tk2])
+        >>> exp = parser.parse()
+        >>> ev = EvalVisitor()
+        >>> exp.accept(ev, None)
+        26
+
+        >>> tk0 = Token('2', TokenType.NUM)
+        >>> tk1 = Token('*', TokenType.MUL)
+        >>> tk2 = Token('(', TokenType.LPR)
+        >>> tk3 = Token('3', TokenType.NUM)
+        >>> tk4 = Token('+', TokenType.ADD)
+        >>> tk5 = Token('4', TokenType.NUM)
+        >>> tk6 = Token(')', TokenType.RPR)
+        >>> parser = Parser([tk0, tk1, tk2, tk3, tk4, tk5, tk6])
+        >>> exp = parser.parse()
+        >>> ev = EvalVisitor()
+        >>> exp.accept(ev, None)
+        14
+
+        >>> tk0 = Token('4', TokenType.NUM)
+        >>> tk1 = Token('==', TokenType.EQL)
+        >>> tk2 = Token('4', TokenType.NUM)
+        >>> parser = Parser([tk0, tk1, tk2])
+        >>> exp = parser.parse()
+        >>> ev = EvalVisitor()
+        >>> exp.accept(ev, None)
+        True
+
+        >>> tk0 = Token('4', TokenType.NUM)
+        >>> tk1 = Token('<=', TokenType.LEQ)
+        >>> tk2 = Token('4', TokenType.NUM)
+        >>> parser = Parser([tk0, tk1, tk2])
+        >>> exp = parser.parse()
+        >>> ev = EvalVisitor()
+        >>> exp.accept(ev, None)
+        True
+
+        >>> tk0 = Token('4', TokenType.NUM)
+        >>> tk1 = Token('<', TokenType.LTH)
+        >>> tk2 = Token('4', TokenType.NUM)
+        >>> parser = Parser([tk0, tk1, tk2])
+        >>> exp = parser.parse()
+        >>> ev = EvalVisitor()
+        >>> exp.accept(ev, None)
+        False
+
+        >>> tk0 = Token('not', TokenType.NOT)
+        >>> tk1 = Token('(', TokenType.LPR)
+        >>> tk2 = Token('4', TokenType.NUM)
+        >>> tk3 = Token('<', TokenType.LTH)
+        >>> tk4 = Token('4', TokenType.NUM)
+        >>> tk5 = Token(')', TokenType.RPR)
+        >>> parser = Parser([tk0, tk1, tk2, tk3, tk4, tk5])
+        >>> exp = parser.parse()
+        >>> ev = EvalVisitor()
+        >>> exp.accept(ev, None)
+        True
+
+        >>> tk0 = Token('true', TokenType.TRU)
+        >>> tk1 = Token('or', TokenType.ORX)
+        >>> tk2 = Token('false', TokenType.FLS)
+        >>> parser = Parser([tk0, tk1, tk2])
+        >>> exp = parser.parse()
+        >>> ev = EvalVisitor()
+        >>> exp.accept(ev, None)
+        True
+
+        >>> tk0 = Token('true', TokenType.TRU)
+        >>> tk1 = Token('and', TokenType.AND)
+        >>> tk2 = Token('false', TokenType.FLS)
+        >>> parser = Parser([tk0, tk1, tk2])
+        >>> exp = parser.parse()
+        >>> ev = EvalVisitor()
+        >>> exp.accept(ev, None)
+        False
+
+        >>> tk0 = Token('let', TokenType.LET)
+        >>> tk1 = Token('v', TokenType.VAR)
+        >>> tk2 = Token('<-', TokenType.ASN)
+        >>> tk3 = Token('42', TokenType.NUM)
+        >>> tk4 = Token('in', TokenType.INX)
+        >>> tk5 = Token('v', TokenType.VAR)
+        >>> tk6 = Token('end', TokenType.END)
+        >>> parser = Parser([tk0, tk1, tk2, tk3, tk4, tk5, tk6])
+        >>> exp = parser.parse()
+        >>> ev = EvalVisitor()
+        >>> exp.accept(ev, {})
+        42
+
+        >>> tk0 = Token('let', TokenType.LET)
+        >>> tk1 = Token('v', TokenType.VAR)
+        >>> tk2 = Token('<-', TokenType.ASN)
+        >>> tk3 = Token('21', TokenType.NUM)
+        >>> tk4 = Token('in', TokenType.INX)
+        >>> tk5 = Token('v', TokenType.VAR)
+        >>> tk6 = Token('+', TokenType.ADD)
+        >>> tk7 = Token('v', TokenType.VAR)
+        >>> tk8 = Token('end', TokenType.END)
+        >>> parser = Parser([tk0, tk1, tk2, tk3, tk4, tk5, tk6, tk7, tk8])
+        >>> exp = parser.parse()
+        >>> ev = EvalVisitor()
+        >>> exp.accept(ev, {})
+        42
+
+        >>> tk0 = Token('if', TokenType.IFX)
+        >>> tk1 = Token('2', TokenType.NUM)
+        >>> tk2 = Token('<', TokenType.LTH)
+        >>> tk3 = Token('3', TokenType.NUM)
+        >>> tk4 = Token('then', TokenType.THN)
+        >>> tk5 = Token('1', TokenType.NUM)
+        >>> tk6 = Token('else', TokenType.ELS)
+        >>> tk7 = Token('2', TokenType.NUM)
+        >>> parser = Parser([tk0, tk1, tk2, tk3, tk4, tk5, tk6, tk7])
+        >>> exp = parser.parse()
+        >>> ev = EvalVisitor()
+        >>> exp.accept(ev, None)
+        1
+
+        >>> tk0 = Token('if', TokenType.IFX)
+        >>> tk1 = Token('false', TokenType.FLS)
+        >>> tk2 = Token('then', TokenType.THN)
+        >>> tk3 = Token('1', TokenType.NUM)
+        >>> tk4 = Token('else', TokenType.ELS)
+        >>> tk5 = Token('2', TokenType.NUM)
+        >>> parser = Parser([tk0, tk1, tk2, tk3, tk4, tk5])
+        >>> exp = parser.parse()
+        >>> ev = EvalVisitor()
+        >>> exp.accept(ev, None)
+        2
+
+        >>> parser = Parser([
+        ...     Token('not', TokenType.NOT), Token('3', TokenType.NUM),
+        ...     Token('<', TokenType.LTH), Token('2', TokenType.NUM)
+        ... ])
+        >>> exp = parser.parse()
+        >>> visitor = EvalVisitor()
+        >>> exp.accept(visitor, {})
+        Traceback (most recent call last):
+        ...
+        SystemExit: Type error
+
+        >>> parser = Parser([
+        ...     Token('not', TokenType.NOT),
+        ...     Token('(', TokenType.LPR),
+        ...     Token('(', TokenType.LPR),
+        ...     Token('2', TokenType.NUM),
+        ...     Token('+', TokenType.ADD),
+        ...     Token('5', TokenType.NUM),
+        ...     Token(')', TokenType.RPR),
+        ...     Token('*', TokenType.MUL),
+        ...     Token('2', TokenType.NUM),
+        ...     Token('<', TokenType.LTH),
+        ...     Token('13', TokenType.NUM),
+        ...     Token('=', TokenType.EQL),
+        ...     Token('true', TokenType.TRU),
+        ...     Token(')', TokenType.RPR)
+        ... ])
+        >>> exp = parser.parse()
+        >>> visitor = EvalVisitor()
+        >>> exp.accept(visitor, {})
+        True
+
+        >>> parser = Parser([
+        ...     Token('let', TokenType.LET),
+        ...     Token("\\n", TokenType.NLN),
+        ...     Token('x', TokenType.VAR),
+        ...     Token('<-', TokenType.ASN),
+        ...     Token('23', TokenType.NUM),
+        ...     Token('\\n', TokenType.NLN),
+        ...     Token('in', TokenType.INX),
+        ...     Token('\\n', TokenType.NLN),
+        ...     Token('if', TokenType.IFX),
+        ...     Token('x', TokenType.VAR),
+        ...     Token('<', TokenType.LTH),
+        ...     Token('20', TokenType.NUM),
+        ...     Token('\\n', TokenType.NLN),
+        ...     Token('then', TokenType.THN),
+        ...     Token('true', TokenType.TRU),
+        ...     Token('\\n', TokenType.NLN),
+        ...     Token('else', TokenType.ELS),
+        ...     Token('false', TokenType.FLS),
+        ...     Token('\\n', TokenType.NLN),
+        ...     Token('end', TokenType.END)
+        ... ])
+        >>> exp = parser.parse()
+        >>> visitor = EvalVisitor()
+        >>> exp.accept(visitor, {})
+        False
+
+        >>> parser = Parser([
+        ...     Token('if', TokenType.IFX),
+        ...     Token('2', TokenType.NUM),
+        ...     Token('<', TokenType.LTH),
+        ...     Token('3', TokenType.NUM),
+        ...     Token('then', TokenType.THN),
+        ...     Token('true', TokenType.TRU),
+        ...     Token('else', TokenType.ELS),
+        ...     Token('false', TokenType.FLS)
+        ... ])
+        >>> exp = parser.parse()
+        >>> visitor = EvalVisitor()
+        >>> exp.accept(visitor, {})
+        True
+
+        >>> parser = Parser([
+        ...     Token('let', TokenType.LET),
+        ...     Token('x', TokenType.VAR),
+        ...     Token('<-', TokenType.ASN),
+        ...     Token('23', TokenType.NUM),
+        ...     Token('in', TokenType.INX),
+        ...     Token('if', TokenType.IFX),
+        ...     Token('if', TokenType.IFX),
+        ...     Token('x', TokenType.VAR),
+        ...     Token('<', TokenType.LTH),
+        ...     Token('20', TokenType.NUM),
+        ...     Token('then', TokenType.THN),
+        ...     Token('false', TokenType.FLS),
+        ...     Token('else', TokenType.ELS),
+        ...     Token('true', TokenType.TRU),
+        ...     Token('then', TokenType.THN),
+        ...     Token('true', TokenType.TRU),
+        ...     Token('else', TokenType.ELS),
+        ...     Token('false', TokenType.FLS),
+        ...     Token('end', TokenType.END)
+        ... ])
+        >>> exp = parser.parse()
+        >>> visitor = EvalVisitor()
+        >>> exp.accept(visitor, {})
+        True
 
         bool_expression         ::= if_then_else_expression
                                 | or_expression
