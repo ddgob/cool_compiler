@@ -29,6 +29,14 @@ class Visitor(ABC):
         pass
 
     @abstractmethod
+    def visit_and(self, exp, arg):
+        pass
+
+    @abstractmethod
+    def visit_or(self, exp, arg):
+        pass
+
+    @abstractmethod
     def visit_add(self, exp, arg):
         pass
 
@@ -63,6 +71,11 @@ class Visitor(ABC):
     @abstractmethod
     def visit_let(self, exp, arg):
         pass
+
+    @abstractmethod
+    def visit_ifThenElse(self, exp, arg):
+        pass
+
 
 class EvalVisitor(Visitor):
     """
@@ -255,6 +268,12 @@ class UseDefVisitor(Visitor):
 
     def visit_div(self, exp, env):
         return exp.left.accept(self, env) | exp.right.accept(self, env)
+    
+    def visit_and(self, exp, env):
+        return exp.left.accept(self, env) | exp.right.accept(self, env)
+    
+    def visit_or(self, exp, env):
+        return exp.left.accept(self, env) | exp.right.accept(self, env)
 
     def visit_leq(self, exp, env):
         return exp.left.accept(self, env) | exp.right.accept(self, env)
@@ -267,6 +286,9 @@ class UseDefVisitor(Visitor):
 
     def visit_not(self, exp, env):
         return exp.exp.accept(self, env)
+
+    def visit_ifThenElse(self, exp, env):
+        return exp.cond.accept(self, env) | exp.e0.accept(self, env) | exp.e1.accept(self, env)
 
     def visit_let(self, exp, env):
         u_def = exp.exp_def.accept(self, env)
