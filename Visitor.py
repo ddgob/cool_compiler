@@ -11,6 +11,7 @@ class Visitor(ABC):
     specific method for each subclass of Expression. Each instance of such a
     subclasse will invoke the right visiting method.
     """
+
     @abstractmethod
     def visit_var(self, exp, arg):
         pass
@@ -169,7 +170,7 @@ class EvalVisitor(Visitor):
         updated_env[exp.identifier] = def_val
         return exp.exp_body.accept(self, updated_env)
     
-    def visit_if_then_else(self, exp, env):
+    def visit_ifThenElse(self, exp, env):
         condition = exp.cond.accept(self, env)
         self.check_type(condition, bool)
         if condition:

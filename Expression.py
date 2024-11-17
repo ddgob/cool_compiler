@@ -390,4 +390,4 @@ class IfThenElse(Expression):
         >>> e.accept(ev, {})
         30
         """
-        return visitor.visit_if_then_else(self, arg)
+        return visitor.visit_ifThenElse(self, arg)
