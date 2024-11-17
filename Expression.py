@@ -380,12 +380,12 @@ class IfThenElse(Expression):
     def accept(self, visitor, arg):
         """
         Example:
-        >>> e = visit_if_then_else(Bln(True), Num(42), Num(30))
+        >>> e = IfThenElse(Bln(True), Num(42), Num(30))
         >>> ev = EvalVisitor()
         >>> e.accept(ev, {})
         42
 
-        >>> e = visit_if_then_else(Bln(False), Num(42), Num(30))
+        >>> e = IfThenElse(Bln(False), Num(42), Num(30))
         >>> ev = EvalVisitor()
         >>> e.accept(ev, {})
         30
