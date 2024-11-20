@@ -548,7 +548,7 @@ class TestLexer(unittest.TestCase):
         lexer = Lexer('let in end')
         tokens = list(lexer.tokens())
         self.assertEqual(tokens[0].kind, TokenType.LET)
-        self.assertEqual(tokens[1].kind, TokenType.INN)
+        self.assertEqual(tokens[1].kind, TokenType.INX)
         self.assertEqual(tokens[2].kind, TokenType.END)
 
     def testLetInEndText(self):
@@ -561,7 +561,7 @@ class TestLexer(unittest.TestCase):
     def testAssignmentTokenType(self):
         lexer = Lexer('<-')
         tokens = list(lexer.tokens())
-        self.assertEqual(tokens[0].kind, TokenType.ASS)
+        self.assertEqual(tokens[0].kind, TokenType.ASN)
 
     def testAssignmentText(self):
         lexer = Lexer('<-')
@@ -571,7 +571,7 @@ class TestLexer(unittest.TestCase):
     def testIfThenElseTokenType(self):
         lexer = Lexer('if then else')
         tokens = list(lexer.tokens())
-        self.assertEqual(tokens[0].kind, TokenType.IFC)
+        self.assertEqual(tokens[0].kind, TokenType.IFX)
         self.assertEqual(tokens[1].kind, TokenType.THN)
         self.assertEqual(tokens[2].kind, TokenType.ELS)
 
@@ -586,7 +586,7 @@ class TestLexer(unittest.TestCase):
         lexer = Lexer('and or')
         tokens = list(lexer.tokens())
         self.assertEqual(tokens[0].kind, TokenType.AND)
-        self.assertEqual(tokens[1].kind, TokenType.OOR)
+        self.assertEqual(tokens[1].kind, TokenType.ORX)
 
     def testAndOrText(self):
         lexer = Lexer('and or')
