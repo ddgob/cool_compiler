@@ -594,5 +594,46 @@ class TestLexer(unittest.TestCase):
         self.assertEqual(tokens[0].text, 'and')
         self.assertEqual(tokens[1].text, 'or')
 
+    def testFunctionKeywordTokenType(self):
+        lexer = Lexer('fn')
+        tokens = list(lexer.tokens())
+        self.assertEqual(tokens[0].kind, TokenType.FNX)
+
+    def testFunctionKeywordText(self):
+        lexer = Lexer('fn')
+        tokens = list(lexer.tokens())
+        self.assertEqual(tokens[0].text, 'fn')
+
+    def testArrowTokenType(self):
+        lexer = Lexer('=>')
+        tokens = list(lexer.tokens())
+        self.assertEqual(tokens[0].kind, TokenType.ARW)
+
+    def testArrowText(self):
+        lexer = Lexer('=>')
+        tokens = list(lexer.tokens())
+        self.assertEqual(tokens[0].text, '=>')
+
+    def testFunctionDefinitionTokens(self):
+        lexer = Lexer('fn x => x + 1')
+        tokens = list(lexer.tokens())
+        self.assertEqual(tokens[0].kind, TokenType.FNX)  # 'fn'
+        self.assertEqual(tokens[1].kind, TokenType.VAR)  # 'x'
+        self.assertEqual(tokens[2].kind, TokenType.ARW)  # '=>'
+        self.assertEqual(tokens[3].kind, TokenType.VAR)  # 'x'
+        self.assertEqual(tokens[4].kind, TokenType.ADD)  # '+'
+        self.assertEqual(tokens[5].kind, TokenType.NUM)  # '1'
+
+    def testFunctionDefinitionText(self):
+        lexer = Lexer('fn x => x + 1')
+        tokens = list(lexer.tokens())
+        self.assertEqual(tokens[0].text, 'fn')
+        self.assertEqual(tokens[1].text, 'x')
+        self.assertEqual(tokens[2].text, '=>')
+        self.assertEqual(tokens[3].text, 'x')
+        self.assertEqual(tokens[4].text, '+')
+        self.assertEqual(tokens[5].text, '1')
+
+
 if __name__ == "__main__":
     pass
