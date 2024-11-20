@@ -76,6 +76,35 @@ class Visitor(ABC):
     def visit_ifThenElse(self, exp, arg):
         pass
 
+    @abstractmethod
+    def visit_fn(self, exp, arg):
+        pass
+
+    @abstractmethod
+    def visit_app(self, exp, arg):
+        pass
+
+
+class Function():
+    """
+    This is the class that represents functions. This class lets us distinguish
+    the three types that now exist in the language: numbers, booleans and
+    functions. Notice that the evaluation of an expression can now be a
+    function. For instance:
+
+        >>> f = Fn('v', Mul(Var('v'), Var('v')))
+        >>> ev = EvalVisitor()
+        >>> fval = f.accept(ev, {})
+        >>> type(fval)
+        <class 'Visitor.Function'>
+    """
+    def __init__(self, formal, body, env):
+        self.formal = formal
+        self.body = body
+        self.env = env
+    def __str__(self):
+        return f"Fn({self.formal})"
+
 
 class EvalVisitor(Visitor):
     """
@@ -210,6 +239,27 @@ class EvalVisitor(Visitor):
         right = exp.right.accept(self, env)
         self.check_type(right, bool)
         return right
+
+    def visit_fn(self, exp, env): # Implemented for you :)
+        """
+        The evaluation of a function is the function itself. Remember: in our
+        language, functions are values as well. So, now we have three kinds of
+        values: numbers, booleans and functions.
+        """
+        return Function(exp.formal, exp.body, env)
+
+    def visit_app(self, exp, env):
+        """
+        Here comes most of the complexity of the homework, in five or six lines
+        of code! You must implement the evaluation of a function application.
+        """
+        fval = exp.function.accept(self, env)
+        if not isinstance(fval, Function):
+            sys.exit('Expected function during application')
+        pval = exp.actual.accept(self, env)
+        new_env = dict(fval.env)
+        new_env[fval.formal] = pval
+        return fval.body.accept(self, new_env)
 
 
 class UseDefVisitor(Visitor):
