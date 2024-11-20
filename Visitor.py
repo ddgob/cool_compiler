@@ -291,6 +291,33 @@ class UseDefVisitor(Visitor):
     >>> ev = UseDefVisitor()
     >>> len(e0.accept(ev, set()))
     0
+
+    >>> f = Fn('v', Add(Var('v'), Num(2)))
+    >>> ev = UseDefVisitor()
+    >>> len(f.accept(ev, set()))  # 'v' is defined within the function, so no undefined variables
+    0
+
+    >>> f = Fn('v', Add(Var('x'), Num(2)))
+    >>> ev = UseDefVisitor()
+    >>> len(f.accept(ev, set()))  # 'x' is undefined
+    1
+
+    >>> app = App(Fn('v', Add(Var('v'), Num(2))), Num(10))
+    >>> ev = UseDefVisitor()
+    >>> len(app.accept(ev, set()))  # Application of a valid function with no undefined variables
+    0
+
+    >>> f = Fn('v', Add(Var('x'), Num(2)))
+    >>> app = App(f, Num(10))
+    >>> ev = UseDefVisitor()
+    >>> len(app.accept(ev, set()))  # 'x' is undefined in the function body
+    1
+
+    >>> f = Fn('v', Add(Var('v'), Var('w')))
+    >>> app = App(f, Num(10))
+    >>> ev = UseDefVisitor()
+    >>> len(app.accept(ev, {'w'}))  # 'w' is defined in the environment
+    0
     """
 
     def visit_var(self, exp, env):
@@ -346,6 +373,25 @@ class UseDefVisitor(Visitor):
         updated_env[exp.identifier] = None
         u_body = exp.exp_body.accept(self, updated_env)
         return u_def | u_body
+    
+    def visit_fn(self, exp, env):
+        """
+        In a function definition, the body of the function is evaluated in an
+        updated environment where the formal parameter is defined.
+        """
+        updated_env = set(env)
+        updated_env.add(exp.formal)
+        return exp.body.accept(self, updated_env)
+
+    def visit_app(self, exp, env):
+        """
+        In a function application, we check both the function and the actual 
+        argument for undefined variables.
+        """
+        u_function = exp.function.accept(self, env)
+        u_actual = exp.actual.accept(self, env)
+        return u_function | u_actual
+
 
 def safe_eval(exp):
     """
@@ -622,3 +668,31 @@ class CtrGenVisitor(Visitor):
         e0_cnstrnt = exp.e0.accept(self, fresh_type)
         e1_cnstrnt = exp.e1.accept(self, fresh_type)
         return cond_cnstrnt | e0_cnstrnt | e1_cnstrnt | {(type_var, fresh_type)}
+    
+    def visit_fn(self, exp, type_var):
+        """
+        Example:
+            >>> e = Fn('x', Add(Var('x'), Num(1)))
+            >>> ev = CtrGenVisitor()
+            >>> sorted([str(ct) for ct in e.accept(ev, ev.fresh_type_var())])
+            ["('TV_1', 'TV_2')", "('TV_1', 'TV_3')", "('x', <class 'int'>)", "(<class 'int'>, 'TV_3')", "(<class 'int'>, <class 'int'>)"]
+        """
+        param_type = self.fresh_type_var()
+        body_type = self.fresh_type_var()
+        body_constraints = exp.body.accept(self, body_type)
+        return body_constraints | {(type_var, body_type)} | {(type_var, param_type)}
+
+    def visit_app(self, exp, type_var):
+        """
+        Example:
+            >>> f = Fn('x', Add(Var('x'), Num(1)))
+            >>> e = App(f, Num(42))
+            >>> ev = CtrGenVisitor()
+            >>> sorted([str(ct) for ct in e.accept(ev, ev.fresh_type_var())])
+            ["('TV_2', 'TV_1')", "('TV_2', 'TV_3')", "('TV_2', 'TV_4')", "('TV_2', 'TV_5')", "('x', <class 'int'>)", "(<class 'int'>, 'TV_3')", "(<class 'int'>, 'TV_5')", "(<class 'int'>, <class 'int'>)"]
+        """
+        func_type = self.fresh_type_var()
+        arg_type = self.fresh_type_var()
+        func_constraints = exp.function.accept(self, func_type)
+        arg_constraints = exp.actual.accept(self, arg_type)
+        return func_constraints | arg_constraints | {(func_type, arg_type)} | {(func_type, type_var)}
