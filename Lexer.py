@@ -28,27 +28,29 @@ class TokenType(enum.Enum):
     STR = 4   # Strings
     TRU = 5   # The constant true
     FLS = 6   # The constant false
-    EQL = 201
-    ADD = 202
-    SUB = 203
-    MUL = 204
-    DIV = 205
-    LEQ = 206
-    LTH = 207
-    NEG = 208
-    NOT = 209
-    LPR = 210
-    RPR = 211
-    LET = 300  # New token for 'let'
-    ASN = 301  # New token for '<-'
-    INX = 302  # New token for 'in'
-    END = 303  # New token for 'end'
-    VAR = 304  # New token for variables
-    IFX = 400  # New token for 'if'
-    THN = 401  # New token for 'then'
-    ELS = 402  # New token for 'else'
-    AND = 403  # New token for 'and'
-    ORX = 404  # New token for 'or'
+    VAR = 7   # An identifier
+    LET = 8   # The 'let' of the let expression
+    INX = 9   # The 'in' of the let expression
+    END = 10  # The 'end' of the let expression
+    EQL = 201 # x = y
+    ADD = 202 # x + y
+    SUB = 203 # x - y
+    MUL = 204 # x * y
+    DIV = 205 # x / y
+    LEQ = 206 # x <= y
+    LTH = 207 # x < y
+    NEG = 208 # ~x
+    NOT = 209 # not x
+    LPR = 210 # (
+    RPR = 211 # )
+    ASN = 212 # The assignment '<-' operator
+    ORX = 213 # x or y
+    AND = 214 # x and y
+    IFX = 215 # The 'if' of a conditional expression
+    THN = 216 # The 'then' of a conditional expression
+    ELS = 217 # The 'else' of a conditional expression
+    FNX = 218 # The 'fn' that declares an anonymous function
+    ARW = 219 # The '=>' that separates the parameter from the body of function
 
 
 class Lexer:
@@ -115,6 +117,9 @@ class Lexer:
         elif currentCharacter == '\n':
             return Token('\n', TokenType.NLN)
         elif currentCharacter == '=':
+            if self.position < self.length and self.input[self.position] == '>':
+                self.position += 1
+                return Token('=>', TokenType.ARW)
             return Token('=', TokenType.EQL)
         elif currentCharacter == '<':
             if self.position < self.length and self.input[self.position] == '=':
@@ -169,6 +174,8 @@ class Lexer:
                 return Token('and', TokenType.AND)
             elif identifier == 'or':
                 return Token('or', TokenType.ORX)
+            elif identifier == 'fn':
+                return Token('fn', TokenType.FNX)
             return Token(identifier, TokenType.VAR)
         else:
             raise ValueError(f"Character not recognized: {currentCharacter}")
