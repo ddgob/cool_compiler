@@ -84,6 +84,12 @@ class Visitor(ABC):
     def visit_fn(self, exp, arg):
         pass
 
+    """
+    @abstractmethod
+    def visit_fun(self, exp, arg):
+        pass
+    """
+
     @abstractmethod
     def visit_app(self, exp, arg):
         pass
@@ -108,6 +114,26 @@ class Function():
         self.env = env
     def __str__(self):
         return f"Fn({self.formal})"
+
+
+class RecFunction(Function):
+    """
+    This is the class that represents named functions. The key different between
+    named and anonymous functions is exactly the "name" :)
+
+        >>> f = Fun('f', 'v', Mul(Var('v'), Var('v')))
+        >>> ev = EvalVisitor()
+        >>> fval = f.accept(ev, {})
+        >>> type(fval)
+        <class 'Visitor.RecFunction'>
+    """
+
+    def __init__(self, name, formal, body, env):
+        super().__init__(formal, body, env)
+        self.name = name
+
+    def __str__(self):
+        return f"Fun {self.name}({self.formal})"
 
 
 class EvalVisitor(Visitor):
@@ -259,18 +285,41 @@ class EvalVisitor(Visitor):
         """
         return Function(exp.formal, exp.body, env)
 
+    def visit_fun(self, exp, env):
+        """
+        The evaluation of a named function returns a value that is the function
+        itself. However, we use a different type of value: RecFunction. In this
+        way, we have access to the name of the named function (and that's why
+        they are called named functions :).
+        """
+        return RecFunction(exp.name, exp.formal, exp.body, env)
+
+
     def visit_app(self, exp, env):
         """
-        Here comes most of the complexity of the homework, in five or six lines
-        of code! You must implement the evaluation of a function application.
+        The application of function to actual parameter must contain two cases:
+        1. An anonymous function is applied: (fn x => x + 1) 2
+        2. A named function is applied: f 2, where f is fun f a = a + a
+        The only difference between these two cases is that in the second we
+        must augment the environment with the name of the named function.
+
+        Example:
+        >>> f = Fun('f', 'v', Mul(Var('v'), Var('v')))
+        >>> e0 = Let('f', f, App(Var('f'), Num(2)))
+        >>> ev = EvalVisitor()
+        >>> e0.accept(ev, {})
+        4
         """
         fval = exp.function.accept(self, env)
-        if not isinstance(fval, Function):
-            sys.exit('Expected function during application')
-        pval = exp.actual.accept(self, env)
-        new_env = dict(fval.env)
-        new_env[fval.formal] = pval
-        return fval.body.accept(self, new_env)
+        if isinstance(fval, Function):
+            pval = exp.actual.accept(self, env)
+            new_env = dict(fval.env)
+            new_env[fval.formal] = pval
+            if isinstance(fval, RecFunction):
+                new_env[fval.name] = fval
+            return fval.body.accept(self, new_env)
+        else:
+            sys.exit("Type error")
 
 
 class UseDefVisitor(Visitor):
@@ -396,6 +445,9 @@ class UseDefVisitor(Visitor):
         updated_env = set(env)
         updated_env.add(exp.formal)
         return exp.body.accept(self, updated_env)
+    
+    def visit_fun(self, exp, env):
+        pass
 
     def visit_app(self, exp, env):
         """
@@ -707,6 +759,9 @@ class CtrGenVisitor(Visitor):
         body_type = self.fresh_type_var()
         body_constraints = exp.body.accept(self, body_type)
         return body_constraints | {(type_var, body_type)} | {(type_var, param_type)}
+    
+    def visit_fun(self, exp, env):
+        pass
 
     def visit_app(self, exp, type_var):
         """
