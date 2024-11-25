@@ -53,6 +53,10 @@ class Visitor(ABC):
         pass
 
     @abstractmethod
+    def visit_mod(self, exp, arg):
+        pass
+
+    @abstractmethod
     def visit_leq(self, exp, arg):
         pass
 
@@ -181,6 +185,13 @@ class EvalVisitor(Visitor):
         self.check_type(left, int)
         self.check_type(right, int)
         return left // right
+
+    def visit_mod(self, exp, env):
+        left = exp.left.accept(self, env)
+        right = exp.right.accept(self, env)
+        self.check_type(left, int)
+        self.check_type(right, int)
+        return left % right
 
     def visit_leq(self, exp, env):
         left = exp.left.accept(self, env)
@@ -344,6 +355,9 @@ class UseDefVisitor(Visitor):
         return exp.left.accept(self, env) | exp.right.accept(self, env)
 
     def visit_div(self, exp, env):
+        return exp.left.accept(self, env) | exp.right.accept(self, env)
+
+    def visit_mod(self, exp, env):
         return exp.left.accept(self, env) | exp.right.accept(self, env)
     
     def visit_and(self, exp, env):
@@ -590,6 +604,18 @@ class CtrGenVisitor(Visitor):
         """
         Example:
             >>> e = Div(Num(1), Num(2))
+            >>> ev = CtrGenVisitor()
+            >>> sorted([str(ct) for ct in e.accept(ev, ev.fresh_type_var())])
+            ["(<class 'int'>, 'TV_1')", "(<class 'int'>, <class 'int'>)"]
+        """
+        left_cnstrnt = exp.left.accept(self, type(1))
+        right_cnstrnt = exp.right.accept(self, type(1))
+        return left_cnstrnt | right_cnstrnt | {(type(1), type_var)}
+
+    def visit_mod(self, exp, type_var):
+        """
+        Example:
+            >>> e = Mod(Num(10), Num(5))
             >>> ev = CtrGenVisitor()
             >>> sorted([str(ct) for ct in e.accept(ev, ev.fresh_type_var())])
             ["(<class 'int'>, 'TV_1')", "(<class 'int'>, <class 'int'>)"]
