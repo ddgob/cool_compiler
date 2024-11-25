@@ -233,21 +233,6 @@ class TestLexer(unittest.TestCase):
         self.assertEqual(token2.text, ' ')
         self.assertEqual(token3.text, '*')
 
-    def testDivisionInputNumberOfTokens(self):
-        lexer = Lexer('/')
-        tokens = list(lexer.tokens())
-        self.assertEqual(len(tokens), 1)
-
-    def testDivisionInputTokenType(self):
-        lexer = Lexer('/')
-        token = lexer.getToken()
-        self.assertEqual(token.kind, TokenType.DIV)
-
-    def testDivisionInputText(self):
-        lexer = Lexer('/')
-        token = lexer.getToken()
-        self.assertEqual(token.text, '/')
-
     def testLessEqualInputNumberOfTokens(self):
         lexer = Lexer('<=')
         tokens = list(lexer.tokens())
@@ -385,7 +370,7 @@ class TestLexer(unittest.TestCase):
         self.assertEqual(tokens[3].text, '\n')
 
     def testTeacherExample2TokenType(self):
-        lexer = Lexer('1 + 21 - 3 / 4\n~3 + 2 <= 2 * 4\n')
+        lexer = Lexer('1 + 21 - 3 div 4\n~3 + 2 <= 2 * 4\n')
         tokens = list(lexer.tokens())
         self.assertEqual(tokens[0].kind, TokenType.NUM)
         self.assertEqual(tokens[1].kind, TokenType.ADD)
@@ -406,14 +391,14 @@ class TestLexer(unittest.TestCase):
         self.assertEqual(tokens[16].kind, TokenType.NLN)
 
     def testTeacherExample2Text(self):
-        lexer = Lexer('1 + 21 - 3 / 4\n~3 + 2 <= 2 * 4\n')
+        lexer = Lexer('1 + 21 - 3 div 4\n~3 + 2 <= 2 * 4\n')
         tokens = list(lexer.tokens())
         self.assertEqual(tokens[0].text, '1')
         self.assertEqual(tokens[1].text, '+')
         self.assertEqual(tokens[2].text, '21')
         self.assertEqual(tokens[3].text, '-')
         self.assertEqual(tokens[4].text, '3')
-        self.assertEqual(tokens[5].text, '/')
+        self.assertEqual(tokens[5].text, 'div')
         self.assertEqual(tokens[6].text, '4')
         self.assertEqual(tokens[7].text, '\n')
         self.assertEqual(tokens[8].text, '~')
@@ -427,7 +412,7 @@ class TestLexer(unittest.TestCase):
         self.assertEqual(tokens[16].text, '\n')
 
     def testTeacherExample3TokenType(self):
-        lexer = Lexer('1 + 21 -- 3 / 4\n~3 + 2 <= 2 -- * 4')
+        lexer = Lexer('1 + 21 -- 3 div 4\n~3 + 2 <= 2 -- * 4')
         tokens = list(lexer.tokens())
         self.assertEqual(tokens[0].kind, TokenType.NUM)
         self.assertEqual(tokens[1].kind, TokenType.ADD)
@@ -440,7 +425,7 @@ class TestLexer(unittest.TestCase):
         self.assertEqual(tokens[8].kind, TokenType.NUM)
 
     def testTeacherExample3Text(self):
-        lexer = Lexer('1 + 21 -- 3 / 4\n~3 + 2 <= 2 -- * 4')
+        lexer = Lexer('1 + 21 -- 3 div 4\n~3 + 2 <= 2 -- * 4')
         tokens = list(lexer.tokens())
         self.assertEqual(tokens[0].text, '1')
         self.assertEqual(tokens[1].text, '+')
@@ -558,16 +543,6 @@ class TestLexer(unittest.TestCase):
         self.assertEqual(tokens[1].text, 'in')
         self.assertEqual(tokens[2].text, 'end')
 
-    def testAssignmentTokenType(self):
-        lexer = Lexer('<-')
-        tokens = list(lexer.tokens())
-        self.assertEqual(tokens[0].kind, TokenType.ASN)
-
-    def testAssignmentText(self):
-        lexer = Lexer('<-')
-        tokens = list(lexer.tokens())
-        self.assertEqual(tokens[0].text, '<-')
-
     def testIfThenElseTokenType(self):
         lexer = Lexer('if then else')
         tokens = list(lexer.tokens())
@@ -633,6 +608,43 @@ class TestLexer(unittest.TestCase):
         self.assertEqual(tokens[3].text, 'x')
         self.assertEqual(tokens[4].text, '+')
         self.assertEqual(tokens[5].text, '1')
+
+    def testDivisionOperatorRecognition(self):
+        lexer = Lexer('div')
+        tokens = list(lexer.tokens())
+        self.assertEqual(len(tokens), 1)  # Ensure only one token is returned
+        self.assertEqual(tokens[0].kind, TokenType.DIV)  # Check token type
+        self.assertEqual(tokens[0].text, 'div')  # Check token text
+
+    def testModuloOperatorRecognition(self):
+        lexer = Lexer('mod')
+        tokens = list(lexer.tokens())
+        self.assertEqual(len(tokens), 1)  # Ensure only one token is returned
+        self.assertEqual(tokens[0].kind, TokenType.MOD)  # Check token type
+        self.assertEqual(tokens[0].text, 'mod')  # Check token text
+
+    def testValKeywordRecognition(self):
+        lexer = Lexer('val')
+        tokens = list(lexer.tokens())
+        self.assertEqual(len(tokens), 1)  # Ensure only one token is returned
+        self.assertEqual(tokens[0].kind, TokenType.VAL)  # Check token type
+        self.assertEqual(tokens[0].text, 'val')  # Check token text
+
+    def testFunKeywordRecognition(self):
+        lexer = Lexer('fun')
+        tokens = list(lexer.tokens())
+        self.assertEqual(len(tokens), 1)  # Ensure only one token is returned
+        self.assertEqual(tokens[0].kind, TokenType.FUN)  # Check token type
+        self.assertEqual(tokens[0].text, 'fun')  # Check token text
+
+    def testFunAndValTogether(self):
+        lexer = Lexer('fun val')
+        tokens = list(lexer.tokens())
+        self.assertEqual(len(tokens), 2)  # Ensure two tokens are returned
+        self.assertEqual(tokens[0].kind, TokenType.FUN)  # Check first token type
+        self.assertEqual(tokens[0].text, 'fun')  # Check first token text
+        self.assertEqual(tokens[1].kind, TokenType.VAL)  # Check second token type
+        self.assertEqual(tokens[1].text, 'val')  # Check second token text
 
 
 if __name__ == "__main__":
