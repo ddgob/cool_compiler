@@ -8,23 +8,25 @@ from Visitor import EvalVisitor
 This file implements a parser for SML with anonymous functions. The grammar is
 as follows:
 
-fn_exp  ::= fn <var> => fn_exp
-          | if_exp
-if_exp  ::= <if> if_exp <then> fn_exp <else> fn_exp
-          | or_exp
-or_exp  ::= and_exp (or and_exp)*
-and_exp ::= eq_exp (and eq_exp)*
-eq_exp  ::= cmp_exp (= cmp_exp)*
-cmp_exp ::= add_exp ([<=|<] add_exp)*
-add_exp ::= mul_exp ([+|-] mul_exp)*
-mul_exp ::= unary_exp ([*|/] unary_exp)*
-unary_exp ::= <not> unary_exp
-             | ~ unary_exp
-             | let_exp
-let_exp ::= <let> <var> <- fn_exp <in> fn_exp <end>
-          | val_exp
-val_exp ::= val_tk (val_tk)*
-val_tk ::= <var> | ( fn_exp ) | <num> | <true> | <false>
+fn_exp      ::= fn <var> => fn_exp
+              | if_exp
+if_exp      ::= <if> if_exp <then> fn_exp <else> fn_exp
+              | or_exp
+or_exp      ::= and_exp (or and_exp)*
+and_exp     ::= eq_exp (and eq_exp)*
+eq_exp      ::= cmp_exp (= cmp_exp)*
+cmp_exp     ::= add_exp ([<=|<] add_exp)*
+add_exp     ::= mul_exp ([+|-] mul_exp)*
+mul_exp     ::= unary_exp ([*|div|mod] unary_exp)*
+unary_exp   ::= <not> unary_exp
+              | ~ unary_exp
+              | let_exp
+let_exp     ::= <let> decl fn_exp <in> fn_exp <end>
+              | val_exp
+val_exp     ::= val_tk (val_tk)*
+val_tk      ::= <var> | ( fn_exp ) | <num> | <true> | <false>
+decl        ::= val <var> = fn_exp
+              | fun <var> <var> = fn_exp
 
 References:
     see https://www.engr.mun.ca/~theo/Misc/exp_parsing.htm#classic
@@ -110,7 +112,7 @@ class Parser:
         -12
 
         >>> tk0 = Token('30', TokenType.NUM)
-        >>> tk1 = Token('/', TokenType.DIV)
+        >>> tk1 = Token('div', TokenType.DIV)
         >>> tk2 = Token('4', TokenType.NUM)
         >>> parser = Parser([tk0, tk1, tk2])
         >>> exp = parser.parse()
@@ -207,28 +209,30 @@ class Parser:
         False
 
         >>> tk0 = Token('let', TokenType.LET)
-        >>> tk1 = Token('v', TokenType.VAR)
-        >>> tk2 = Token('<-', TokenType.ASN)
-        >>> tk3 = Token('42', TokenType.NUM)
-        >>> tk4 = Token('in', TokenType.INX)
-        >>> tk5 = Token('v', TokenType.VAR)
-        >>> tk6 = Token('end', TokenType.END)
-        >>> parser = Parser([tk0, tk1, tk2, tk3, tk4, tk5, tk6])
+        >>> tk1 = Token('val', TokenType.VAL)
+        >>> tk2 = Token('v', TokenType.VAR)
+        >>> tk3 = Token('=', TokenType.EQL)
+        >>> tk4 = Token('42', TokenType.NUM)
+        >>> tk5 = Token('in', TokenType.INX)
+        >>> tk6 = Token('v', TokenType.VAR)
+        >>> tk7 = Token('end', TokenType.END)
+        >>> parser = Parser([tk0, tk1, tk2, tk3, tk4, tk5, tk6, tk7])
         >>> exp = parser.parse()
         >>> ev = EvalVisitor()
         >>> exp.accept(ev, {})
         42
 
         >>> tk0 = Token('let', TokenType.LET)
-        >>> tk1 = Token('v', TokenType.VAR)
-        >>> tk2 = Token('<-', TokenType.ASN)
-        >>> tk3 = Token('21', TokenType.NUM)
-        >>> tk4 = Token('in', TokenType.INX)
-        >>> tk5 = Token('v', TokenType.VAR)
-        >>> tk6 = Token('+', TokenType.ADD)
-        >>> tk7 = Token('v', TokenType.VAR)
-        >>> tk8 = Token('end', TokenType.END)
-        >>> parser = Parser([tk0, tk1, tk2, tk3, tk4, tk5, tk6, tk7, tk8])
+        >>> tk1 = Token('val', TokenType.VAL)
+        >>> tk2 = Token('v', TokenType.VAR)
+        >>> tk3 = Token('=', TokenType.EQL)
+        >>> tk4 = Token('21', TokenType.NUM)
+        >>> tk5 = Token('in', TokenType.INX)
+        >>> tk6 = Token('v', TokenType.VAR)
+        >>> tk7 = Token('+', TokenType.ADD)
+        >>> tk8 = Token('v', TokenType.VAR)
+        >>> tk9 = Token('end', TokenType.END)
+        >>> parser = Parser([tk0, tk1, tk2, tk3, tk4, tk5, tk6, tk7, tk8, tk9])
         >>> exp = parser.parse()
         >>> ev = EvalVisitor()
         >>> exp.accept(ev, {})
@@ -286,6 +290,24 @@ class Parser:
         >>> ev = EvalVisitor()
         >>> exp.accept(ev, {})
         3
+
+        >>> t0 = Token('let', TokenType.LET)
+        >>> t1 = Token('fun', TokenType.FUN)
+        >>> t2 = Token('f', TokenType.VAR)
+        >>> t3 = Token('v', TokenType.VAR)
+        >>> t4 = Token('=', TokenType.EQL)
+        >>> t5 = Token('v', TokenType.VAR)
+        >>> t6 = Token('+', TokenType.ADD)
+        >>> t7 = Token('v', TokenType.VAR)
+        >>> t8 = Token('in', TokenType.INX)
+        >>> t9 = Token('f', TokenType.VAR)
+        >>> tA = Token('2', TokenType.NUM)
+        >>> tB = Token('end', TokenType.END)
+        >>> parser = Parser([t0, t1, t2, t3, t4, t5, t6, t7, t8, t9, tA, tB])
+        >>> exp = parser.parse()
+        >>> ev = EvalVisitor()
+        >>> exp.accept(ev, {})
+        4
         """
         return self.fn_exp()
     
@@ -304,6 +326,7 @@ class Parser:
             self.advance()
             if not self.match(TokenType.ARW):
                 raise ValueError("Expected '=>' after parameter")
+            self.advance_newlines()
             body = self.fn_exp()
             return Fn(formal, body)
         return self.if_exp()
@@ -409,10 +432,10 @@ class Parser:
         Parses multiplication and division expressions.
 
         Grammar:
-            mul_exp ::= unary_exp ([*|/] unary_exp)*
+            mul_exp ::= unary_exp ([*|div|mod] unary_exp)*
         """
         left = self.unary_exp()
-        while self.current_token().kind in (TokenType.MUL, TokenType.DIV):
+        while self.current_token().kind in (TokenType.MUL, TokenType.DIV, TokenType.MOD):
             operator = self.current_token().kind
             self.advance()
             right = self.unary_exp()
@@ -420,6 +443,8 @@ class Parser:
                 left = Mul(left, right)
             elif operator == TokenType.DIV:
                 left = Div(left, right)
+            elif operator == TokenType.MOD:
+                left = Mod(left, right)
         return left
 
     def unary_exp(self):
@@ -437,7 +462,7 @@ class Parser:
             return Neg(expr)
         return self.let_exp()
 
-    def let_exp(self):
+    def let_exp_old(self):
         """
         Parses let expressions.
 
@@ -464,6 +489,50 @@ class Parser:
                 raise ValueError("Expected 'end' after let body")
             return Let(identifier, exp_def, exp_body)
         return self.val_exp()
+
+    def let_exp(self):
+        if self.match(TokenType.LET):
+            self.advance_newlines()
+            identifier, exp_def = self.decl()
+            self.advance_newlines()
+            if not self.match(TokenType.INX):
+                raise ValueError("Expected 'in' in let expression")
+            self.advance_newlines()
+            exp_body = self.fn_exp()
+            self.advance_newlines()
+            if not self.match(TokenType.END):
+                raise ValueError("Expected 'end' after let body")
+            return Let(identifier, exp_def, exp_body)
+        return self.val_exp()
+
+    def decl(self):
+        if self.match(TokenType.VAL):
+            token = self.current_token()
+            if token.kind != TokenType.VAR:
+                raise ValueError("Expected a variable after 'val'")
+            identifier = token.text
+            self.advance()
+            if not self.match(TokenType.EQL):
+                raise ValueError("Expected '=' in 'val' declaration")
+            exp_def = self.fn_exp()
+            return identifier, exp_def
+        elif self.match(TokenType.FUN):
+            token = self.current_token()
+            if token.kind != TokenType.VAR:
+                raise ValueError("Expected a variable after 'fun'")
+            name = token.text
+            self.advance()
+            param_token = self.current_token()
+            if param_token.kind != TokenType.VAR:
+                raise ValueError("Expected a parameter after function name")
+            formal = param_token.text
+            self.advance()
+            if not self.match(TokenType.EQL):
+                raise ValueError("Expected '=' in 'fun' declaration")
+            body = self.fn_exp()
+            return name, Fun(name, formal, body)
+        else:
+            raise ValueError("Expected 'val' or 'fun' declaration")
 
     def val_exp(self):
         """
@@ -514,3 +583,70 @@ class Parser:
             return expr
         else:
             sys.exit("Parse error")
+
+if __name__ == "__main__":
+    tokens = [
+    Token("let", TokenType.LET),  # let
+    Token("\n", TokenType.NLN),
+    Token("fun", TokenType.FUN),  # fun
+    Token("helper", TokenType.VAR),  # helper
+    Token("n", TokenType.VAR),  # n
+    Token("=", TokenType.EQL),  # =
+    Token("fn", TokenType.FNX),  # fn
+    Token("rev", TokenType.VAR),  # rev
+    Token("=>", TokenType.ARW),  # =>
+    Token("\n", TokenType.NLN),
+    Token("if", TokenType.IFX),  # if
+    Token("n", TokenType.VAR),  # n
+    Token("=", TokenType.EQL),  # =
+    Token("0", TokenType.NUM),  # 0
+    Token("\n", TokenType.NLN),
+    Token("then", TokenType.THN),  # then
+    Token("rev", TokenType.VAR),  # rev
+    Token("\n", TokenType.NLN),
+    Token("else", TokenType.ELS),  # else
+    Token("helper", TokenType.VAR),  # helper
+    Token("(", TokenType.LPR),  # (
+    Token("n", TokenType.VAR),  # n
+    Token("div", TokenType.DIV),  # div
+    Token("10", TokenType.NUM),  # 10
+    Token(")", TokenType.RPR),  # )
+    Token("(", TokenType.LPR),  # (
+    Token("rev", TokenType.VAR),  # rev
+    Token("*", TokenType.MUL),  # *
+    Token("10", TokenType.NUM),  # 10
+    Token("+", TokenType.ADD),  # +
+    Token("(", TokenType.LPR),  # (
+    Token("n", TokenType.VAR),  # n
+    Token("mod", TokenType.MOD),  # mod
+    Token("10", TokenType.NUM),  # 10
+    Token(")", TokenType.RPR),  # )
+    Token(")", TokenType.RPR),  # )
+    Token("\n", TokenType.NLN),
+    Token("in", TokenType.INX),  # in
+    Token("\n", TokenType.NLN),
+    Token("let", TokenType.LET),  # let
+    Token("\n", TokenType.NLN),
+    Token("fun", TokenType.FUN),  # fun
+    Token("reverse", TokenType.VAR),  # reverse
+    Token("n", TokenType.VAR),  # n
+    Token("=", TokenType.EQL),  # =
+    Token("helper", TokenType.VAR),  # helper
+    Token("n", TokenType.VAR),  # n
+    Token("0", TokenType.NUM),  # 0
+    Token("\n", TokenType.NLN),
+    Token("in", TokenType.INX),  # in
+    Token("\n", TokenType.NLN),
+    Token("reverse", TokenType.VAR),  # reverse
+    Token("18", TokenType.NUM),  # 18
+    Token("\n", TokenType.NLN),
+    Token("end", TokenType.END),  # end
+    Token("\n", TokenType.NLN),
+    Token("end", TokenType.END),  # end
+    Token("\n", TokenType.NLN)
+]
+    parser = Parser(tokens)
+    exp = parser.parse()
+    ev = EvalVisitor()
+    val = exp.accept(ev, {})
+    print(val)
