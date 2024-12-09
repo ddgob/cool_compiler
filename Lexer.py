@@ -53,6 +53,12 @@ class TokenType(enum.Enum):
     ARW = 219  # The '=>' that separates the parameter from the body of function
     FUN = 220  # The 'fun' declaration
     MOD = 221  # The 'mod' operator
+    TPF = 220  # The arrow that indicates a function type
+    COL = 221  # The colon that separates type annotations
+    INT = 222  # The int type ('int')
+    LGC = 223  # The boolean (logic) type ('bool')
+    ASN = 226  # '<-' for let binding
+    GTH = 227  # '>' operator
 
 
 class Lexer:
@@ -103,7 +109,14 @@ class Lexer:
             return Token('+', TokenType.ADD)
         elif currentCharacter == '*':
             return Token('*', TokenType.MUL)
+        elif currentCharacter == '/':
+            return Token('/', TokenType.DIV)
+        elif currentCharacter == ':':
+            return Token(':', TokenType.COL)
         elif currentCharacter == '-':
+            if self.position < self.length and self.input[self.position] == '>':
+                self.position += 1
+                return Token('->', TokenType.TPF)
             if self.position < self.length and self.input[self.position] == '-':
                 comment = '-'
                 while self.position < self.length and self.input[self.position] != '\n':
@@ -130,6 +143,8 @@ class Lexer:
                 return Token('<-', TokenType.ASN)
             else:
                 return Token('<', TokenType.LTH)
+        elif currentCharacter == '>':
+            return Token('>', TokenType.GTH)
         elif currentCharacter == '~':
             return Token('~', TokenType.NEG)
         elif currentCharacter == '(':
@@ -152,6 +167,10 @@ class Lexer:
             while self.position < self.length and self.input[self.position].isalnum():
                 identifier += self.input[self.position]
                 self.position += 1
+            if identifier == 'int':
+                return Token('int', TokenType.INT)
+            elif identifier == 'bool':
+                return Token('bool', TokenType.LGC)
             if identifier == "true":
                 return Token('true', TokenType.TRU)
             elif identifier == "false":
