@@ -645,6 +645,77 @@ class TestLexer(unittest.TestCase):
         self.assertEqual(tokens[0].text, 'fun')  # Check first token text
         self.assertEqual(tokens[1].kind, TokenType.VAL)  # Check second token type
         self.assertEqual(tokens[1].text, 'val')  # Check second token text
+    
+    def testTypeArrowTokenType(self):
+        lexer = Lexer('->')
+        tokens = list(lexer.tokens())
+        self.assertEqual(len(tokens), 1)  # Ensure only one token is returned
+        self.assertEqual(tokens[0].kind, TokenType.TPF)  # Check token type
+        self.assertEqual(tokens[0].text, '->')  # Check token text
+
+    def testColonTokenType(self):
+        lexer = Lexer(':')
+        tokens = list(lexer.tokens())
+        self.assertEqual(len(tokens), 1)  # Ensure only one token is returned
+        self.assertEqual(tokens[0].kind, TokenType.COL)  # Check token type
+        self.assertEqual(tokens[0].text, ':')  # Check token text
+
+    def testIntKeywordTokenType(self):
+        lexer = Lexer('int')
+        tokens = list(lexer.tokens())
+        self.assertEqual(len(tokens), 1)  # Ensure only one token is returned
+        self.assertEqual(tokens[0].kind, TokenType.INT)  # Check token type
+        self.assertEqual(tokens[0].text, 'int')  # Check token text
+
+    def testBoolKeywordTokenType(self):
+        lexer = Lexer('bool')
+        tokens = list(lexer.tokens())
+        self.assertEqual(len(tokens), 1)  # Ensure only one token is returned
+        self.assertEqual(tokens[0].kind, TokenType.LGC)  # Check token type
+        self.assertEqual(tokens[0].text, 'bool')  # Check token text
+
+    def testTypeAnnotationExpression(self):
+        lexer = Lexer('x: int -> bool')
+        tokens = list(lexer.tokens())
+        self.assertEqual(len(tokens), 5)  # Ensure five tokens are returned
+        self.assertEqual(tokens[0].kind, TokenType.VAR)  # 'x'
+        self.assertEqual(tokens[0].text, 'x')
+        self.assertEqual(tokens[1].kind, TokenType.COL)  # ':'
+        self.assertEqual(tokens[1].text, ':')
+        self.assertEqual(tokens[2].kind, TokenType.INT)  # 'int'
+        self.assertEqual(tokens[2].text, 'int')
+        self.assertEqual(tokens[3].kind, TokenType.TPF)  # '->'
+        self.assertEqual(tokens[3].text, '->')
+        self.assertEqual(tokens[4].kind, TokenType.LGC)  # 'bool'
+        self.assertEqual(tokens[4].text, 'bool')
+
+    def testMultipleTypeAnnotations(self):
+        lexer = Lexer('let f: int -> bool = fn x: int => x < 0')
+        tokens = list(lexer.tokens())
+        self.assertEqual(tokens[0].kind, TokenType.LET)  # 'let'
+        self.assertEqual(tokens[1].kind, TokenType.VAR)  # 'f'
+        self.assertEqual(tokens[2].kind, TokenType.COL)  # ':'
+        self.assertEqual(tokens[3].kind, TokenType.INT)  # 'int'
+        self.assertEqual(tokens[4].kind, TokenType.TPF)  # '->'
+        self.assertEqual(tokens[5].kind, TokenType.LGC)  # 'bool'
+        self.assertEqual(tokens[6].kind, TokenType.EQL)  # '='
+        self.assertEqual(tokens[7].kind, TokenType.FNX)  # 'fn'
+        self.assertEqual(tokens[8].kind, TokenType.VAR)  # 'x'
+        self.assertEqual(tokens[9].kind, TokenType.COL)  # ':'
+        self.assertEqual(tokens[10].kind, TokenType.INT)  # 'int'
+        self.assertEqual(tokens[11].kind, TokenType.ARW)  # '=>'
+        self.assertEqual(tokens[12].kind, TokenType.VAR)  # 'x'
+        self.assertEqual(tokens[13].kind, TokenType.LTH)  # '<'
+        self.assertEqual(tokens[14].kind, TokenType.NUM)  # '0'
+
+    def testColonAndArrowTogether(self):
+        lexer = Lexer(': ->')
+        tokens = list(lexer.tokens())
+        self.assertEqual(len(tokens), 2)  # Ensure two tokens are returned
+        self.assertEqual(tokens[0].kind, TokenType.COL)  # ':'
+        self.assertEqual(tokens[0].text, ':')
+        self.assertEqual(tokens[1].kind, TokenType.TPF)  # '->'
+        self.assertEqual(tokens[1].text, '->')
 
 
 if __name__ == "__main__":
