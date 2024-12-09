@@ -2,6 +2,7 @@ import sys
 from abc import ABC, abstractmethod
 from Expression import *
 
+
 class Visitor(ABC):
     """
     The visitor pattern consists of two abstract classes: the Expression and the
@@ -53,10 +54,6 @@ class Visitor(ABC):
         pass
 
     @abstractmethod
-    def visit_mod(self, exp, arg):
-        pass
-
-    @abstractmethod
     def visit_leq(self, exp, arg):
         pass
 
@@ -84,696 +81,341 @@ class Visitor(ABC):
     def visit_fn(self, exp, arg):
         pass
 
-    """
-    @abstractmethod
-    def visit_fun(self, exp, arg):
-        pass
-    """
-
     @abstractmethod
     def visit_app(self, exp, arg):
         pass
 
 
-class Function():
+class ArrowType:
     """
-    This is the class that represents functions. This class lets us distinguish
-    the three types that now exist in the language: numbers, booleans and
-    functions. Notice that the evaluation of an expression can now be a
-    function. For instance:
+    This is the class that represents function types. A function type is just
+    that: the type of a function. Function types are also called "arrow types",
+    because they tend to be represented as 't0 -> t1'. Thus, an arrow type
+    has two parts: the head type (t0) and the tail type (t1).
 
-        >>> f = Fn('v', Mul(Var('v'), Var('v')))
-        >>> ev = EvalVisitor()
-        >>> fval = f.accept(ev, {})
-        >>> type(fval)
-        <class 'Visitor.Function'>
-    """
-    def __init__(self, formal, body, env):
-        self.formal = formal
-        self.body = body
-        self.env = env
-    def __str__(self):
-        return f"Fn({self.formal})"
+    Usage:
+        >>> t = ArrowType(type(1), type(True))
+        >>> t.hd == type(1) and t.tl == type(True)
+        True
 
-
-class RecFunction(Function):
-    """
-    This is the class that represents named functions. The key different between
-    named and anonymous functions is exactly the "name" :)
-
-        >>> f = Fun('f', 'v', Mul(Var('v'), Var('v')))
-        >>> ev = EvalVisitor()
-        >>> fval = f.accept(ev, {})
-        >>> type(fval)
-        <class 'Visitor.RecFunction'>
+        >>> t = ArrowType(type(1), type(True))
+        >>> str(t)
+        "<class 'int'> -> <class 'bool'>"
     """
 
-    def __init__(self, name, formal, body, env):
-        super().__init__(formal, body, env)
-        self.name = name
+    def __init__(self, tp_formal, tp_body):
+        self.hd = tp_formal
+        self.tl = tp_body
 
-    def __str__(self):
-        return f"Fun {self.name}({self.formal})"
+    def __eq__(self, other):
+        """
+        Two arrow types are equal if their head and tail are equal.
+        Example:
+            >>> t0 = ArrowType(type(1), ArrowType(type(1), type(1)))
+            >>> t1 = ArrowType(type(1), ArrowType(type(1), type(1)))
+            >>> t0 == t1
+            True
+        """
+        if isinstance(other, ArrowType):
+            return self.hd == other.hd and self.tl == other.tl
+        else:
+            return False
+
+    def __repr__(self):
+        if isinstance(self.hd, ArrowType):
+            hd_str = f"( {str(self.hd)} )"
+        else:
+            hd_str = str(self.hd)
+        if isinstance(self.tl, ArrowType):
+            tl_str = f"( {str(self.tl)} )"
+        else:
+            tl_str = str(self.tl)
+        return f"{hd_str} -> {tl_str}"
 
 
-class EvalVisitor(Visitor):
+class TypeCheckVisitor(Visitor):
     """
-    The EvalVisitor class evaluates logical and arithmetic expressions. The
+    The TypeCheckVisitor class evaluates logical and arithmetic expressions. The
     result of evaluating an expression is the value of that expression. The
     inherited attribute propagated throughout visits is the environment that
     associates the names of variables with values.
-
-    Examples:
-    >>> e0 = Let('v', Add(Num(40), Num(2)), Mul(Var('v'), Var('v')))
-    >>> e1 = Not(Eql(e0, Num(1764)))
-    >>> ev = EvalVisitor()
-    >>> e1.accept(ev, {})
-    False
-
-    >>> e0 = Let('v', Add(Num(40), Num(2)), Sub(Var('v'), Num(2)))
-    >>> e1 = Lth(e0, Var('x'))
-    >>> ev = EvalVisitor()
-    >>> e1.accept(ev, {'x': 41})
-    True
     """
 
-    def check_type(self, val, expected_type):
-        if not type(val) == expected_type:
-            sys.exit("Type error")
-
     def visit_var(self, exp, env):
+        """
+        Usage:
+            >>> e = Var('t')
+            >>> ev = TypeCheckVisitor()
+            >>> e.accept(ev, {'t':type(1)})
+            <class 'int'>
+
+            >>> e = Var('t')
+            >>> ev = TypeCheckVisitor()
+            >>> e.accept(ev, {'t':ArrowType(type(1), type(True))})
+            <class 'int'> -> <class 'bool'>
+        """
         if exp.identifier in env:
             return env[exp.identifier]
         else:
-            sys.exit(f"Def error")
+            sys.exit("Def error")
 
     def visit_bln(self, exp, env):
-        return exp.bln
+        """
+        Usage:
+            >>> e = Bln(True)
+            >>> ev = TypeCheckVisitor()
+            >>> e.accept(ev, None)
+            <class 'bool'>
+        """
+        return type(exp.bln)
 
     def visit_num(self, exp, env):
-        return exp.num
-
-    def visit_eql(self, exp, env):
-        left = exp.left.accept(self, env)
-        right = exp.right.accept(self, env)
-        if type(left) == int:
-            self.check_type(right, int)
-        elif type(left) == bool:
-            self.check_type(right, bool)
-        else:
-            sys.exit("Type error")
-        return left == right
-
-    def visit_add(self, exp, env):
-        left = exp.left.accept(self, env)
-        right = exp.right.accept(self, env)
-        self.check_type(left, int)
-        self.check_type(right, int)
-        return left + right
-
-    def visit_sub(self, exp, env):
-        left = exp.left.accept(self, env)
-        right = exp.right.accept(self, env)
-        self.check_type(left, int)
-        self.check_type(right, int)
-        return left - right
-
-    def visit_mul(self, exp, env):
-        left = exp.left.accept(self, env)
-        right = exp.right.accept(self, env)
-        self.check_type(left, int)
-        self.check_type(right, int)
-        return left * right
-
-    def visit_div(self, exp, env):
-        left = exp.left.accept(self, env)
-        right = exp.right.accept(self, env)
-        self.check_type(left, int)
-        self.check_type(right, int)
-        return left // right
-
-    def visit_mod(self, exp, env):
-        left = exp.left.accept(self, env)
-        right = exp.right.accept(self, env)
-        self.check_type(left, int)
-        self.check_type(right, int)
-        return left % right
-
-    def visit_leq(self, exp, env):
-        left = exp.left.accept(self, env)
-        right = exp.right.accept(self, env)
-        self.check_type(left, int)
-        self.check_type(right, int)
-        return left <= right
-
-    def visit_lth(self, exp, env):
-        left = exp.left.accept(self, env)
-        right = exp.right.accept(self, env)
-        self.check_type(left, int)
-        self.check_type(right, int)
-        return left < right
-
-    def visit_neg(self, exp, env):
-        eval = exp.exp.accept(self, env)
-        self.check_type(eval, int)
-        return -eval
-
-    def visit_not(self, exp, env):
-        eval = exp.exp.accept(self, env)
-        self.check_type(eval, bool)
-        return not eval
-
-    def visit_let(self, exp, env):
-        def_val = exp.exp_def.accept(self, env)
-        updated_env = dict(env)
-        updated_env[exp.identifier] = def_val
-        return exp.exp_body.accept(self, updated_env)
-    
-    def visit_ifThenElse(self, exp, env):
-        condition = exp.cond.accept(self, env)
-        self.check_type(condition, bool)
-        if condition:
-            return exp.e0.accept(self, env)
-        else:
-            return exp.e1.accept(self, env)
-    
-    def visit_and(self, exp, env):
-        left = exp.left.accept(self, env)
-        self.check_type(left, bool)
-        # Short circuit and 
-        if left:
-            right = exp.right.accept(self, env)
-            self.check_type(right, bool)
-            return right
-        return False
-
-    def visit_or(self, exp, env):
-        left = exp.left.accept(self, env)
-        self.check_type(left, bool)
-        # Short circuit or
-        if left: 
-            return True
-        right = exp.right.accept(self, env)
-        self.check_type(right, bool)
-        return right
-
-    def visit_fn(self, exp, env): # Implemented for you :)
         """
-        The evaluation of a function is the function itself. Remember: in our
-        language, functions are values as well. So, now we have three kinds of
-        values: numbers, booleans and functions.
+        Usage:
+            >>> e = Num(1)
+            >>> ev = TypeCheckVisitor()
+            >>> e.accept(ev, None)
+            <class 'int'>
         """
-        return Function(exp.formal, exp.body, env)
+        return type(exp.num)
 
-    def visit_fun(self, exp, env):
+    def visit_eql(self, exp, env): # Implemented for you :)
         """
-        The evaluation of a named function returns a value that is the function
-        itself. However, we use a different type of value: RecFunction. In this
-        way, we have access to the name of the named function (and that's why
-        they are called named functions :).
+        Usage:
+            >>> e = Eql(Num(1), Num(2))
+            >>> ev = TypeCheckVisitor()
+            >>> e.accept(ev, None)
+            <class 'bool'>
         """
-        return RecFunction(exp.name, exp.formal, exp.body, env)
-
-
-    def visit_app(self, exp, env):
-        """
-        The application of function to actual parameter must contain two cases:
-        1. An anonymous function is applied: (fn x => x + 1) 2
-        2. A named function is applied: f 2, where f is fun f a = a + a
-        The only difference between these two cases is that in the second we
-        must augment the environment with the name of the named function.
-
-        Example:
-        >>> f = Fun('f', 'v', Mul(Var('v'), Var('v')))
-        >>> e0 = Let('f', f, App(Var('f'), Num(2)))
-        >>> ev = EvalVisitor()
-        >>> e0.accept(ev, {})
-        4
-        """
-        fval = exp.function.accept(self, env)
-        if isinstance(fval, Function):
-            pval = exp.actual.accept(self, env)
-            new_env = dict(fval.env)
-            new_env[fval.formal] = pval
-            if isinstance(fval, RecFunction):
-                new_env[fval.name] = fval
-            return fval.body.accept(self, new_env)
+        if exp.left.accept(self, env) == exp.right.accept(self, env):
+            return type(True)
         else:
             sys.exit("Type error")
 
+    def visit_and(self, exp, env):
+        """
+        Usage:
+            >>> e = And(Bln(True), Bln(False))
+            >>> ev = TypeCheckVisitor()
+            >>> e.accept(ev, None)
+            <class 'bool'>
+        """
+        if exp.left.accept(self, env) == exp.right.accept(self, env) == type(True):
+            return type(True)
+        else:
+            sys.exit("Type error")
 
-class UseDefVisitor(Visitor):
-    """
-    The UseDefVisitor class reports the use of undefined variables. It takes
-    as input an environment of defined variables, and produces, as output,
-    the set of all the variables that are used without being defined.
-
-    Examples:
-    >>> e0 = Let('v', Add(Num(40), Num(2)), Mul(Var('v'), Var('v')))
-    >>> e1 = Not(Eql(e0, Num(1764)))
-    >>> ev = UseDefVisitor()
-    >>> len(e1.accept(ev, set()))
-    0
-
-    >>> e0 = Let('v', Add(Num(40), Num(2)), Sub(Var('v'), Num(2)))
-    >>> e1 = Lth(e0, Var('x'))
-    >>> ev = UseDefVisitor()
-    >>> len(e1.accept(ev, set()))
-    1
-
-    >>> e = Let('v', Add(Num(40), Var('v')), Sub(Var('v'), Num(2)))
-    >>> ev = UseDefVisitor()
-    >>> len(e.accept(ev, set()))
-    1
-
-    >>> e1 = Let('v', Add(Num(40), Var('v')), Sub(Var('v'), Num(2)))
-    >>> e0 = Let('v', Num(3), e1)
-    >>> ev = UseDefVisitor()
-    >>> len(e0.accept(ev, set()))
-    0
-
-    >>> f = Fn('v', Add(Var('v'), Num(2)))
-    >>> ev = UseDefVisitor()
-    >>> len(f.accept(ev, set()))  # 'v' is defined within the function, so no undefined variables
-    0
-
-    >>> f = Fn('v', Add(Var('x'), Num(2)))
-    >>> ev = UseDefVisitor()
-    >>> len(f.accept(ev, set()))  # 'x' is undefined
-    1
-
-    >>> app = App(Fn('v', Add(Var('v'), Num(2))), Num(10))
-    >>> ev = UseDefVisitor()
-    >>> len(app.accept(ev, set()))  # Application of a valid function with no undefined variables
-    0
-
-    >>> f = Fn('v', Add(Var('x'), Num(2)))
-    >>> app = App(f, Num(10))
-    >>> ev = UseDefVisitor()
-    >>> len(app.accept(ev, set()))  # 'x' is undefined in the function body
-    1
-
-    >>> f = Fn('v', Add(Var('v'), Var('w')))
-    >>> app = App(f, Num(10))
-    >>> ev = UseDefVisitor()
-    >>> len(app.accept(ev, {'w'}))  # 'w' is defined in the environment
-    0
-    """
-
-    def visit_var(self, exp, env):
-        if exp.identifier not in env:
-            return set([exp.identifier])
-        return set()
-
-    def visit_bln(self, exp, env):
-        return set()
-
-    def visit_num(self, exp, env):
-        return set()
-
-    def visit_eql(self, exp, env):
-        return exp.left.accept(self, env) | exp.right.accept(self, env)
+    def visit_or(self, exp, env):
+        """
+        Usage:
+            >>> e = Or(Bln(True), Bln(False))
+            >>> ev = TypeCheckVisitor()
+            >>> e.accept(ev, None)
+            <class 'bool'>
+        """
+        if exp.left.accept(self, env) == exp.right.accept(self, env) == type(True):
+            return type(True)
+        else:
+            sys.exit("Type error")
 
     def visit_add(self, exp, env):
-        return exp.left.accept(self, env) | exp.right.accept(self, env)
+        """
+        Usage:
+            >>> e = Add(Num(1), Num(2))
+            >>> ev = TypeCheckVisitor()
+            >>> e.accept(ev, None)
+            <class 'int'>
+        """
+        if exp.left.accept(self, env) == exp.right.accept(self, env) == type(1):
+            return type(1)
+        else:
+            sys.exit("Type error")
 
     def visit_sub(self, exp, env):
-        return exp.left.accept(self, env) | exp.right.accept(self, env)
+        """
+        Usage:
+            >>> e = Sub(Num(1), Num(2))
+            >>> ev = TypeCheckVisitor()
+            >>> e.accept(ev, None)
+            <class 'int'>
+        """
+        if exp.left.accept(self, env) == exp.right.accept(self, env) == type(1):
+            return type(1)
+        else:
+            sys.exit("Type error")
 
     def visit_mul(self, exp, env):
-        return exp.left.accept(self, env) | exp.right.accept(self, env)
+        """
+        Usage:
+            >>> e = Mul(Num(1), Num(2))
+            >>> ev = TypeCheckVisitor()
+            >>> e.accept(ev, None)
+            <class 'int'>
+        """
+        if exp.left.accept(self, env) == exp.right.accept(self, env) == type(1):
+            return type(1)
+        else:
+            sys.exit("Type error")
 
     def visit_div(self, exp, env):
-        return exp.left.accept(self, env) | exp.right.accept(self, env)
-
-    def visit_mod(self, exp, env):
-        return exp.left.accept(self, env) | exp.right.accept(self, env)
-    
-    def visit_and(self, exp, env):
-        return exp.left.accept(self, env) | exp.right.accept(self, env)
-    
-    def visit_or(self, exp, env):
-        return exp.left.accept(self, env) | exp.right.accept(self, env)
+        """
+        Usage:
+            >>> e = Div(Num(1), Num(0))
+            >>> ev = TypeCheckVisitor()
+            >>> e.accept(ev, None)
+            <class 'int'>
+        """
+        if exp.left.accept(self, env) == exp.right.accept(self, env) == type(1):
+            return type(1)
+        else:
+            sys.exit("Type error")
 
     def visit_leq(self, exp, env):
-        return exp.left.accept(self, env) | exp.right.accept(self, env)
+        """
+        Usage:
+            >>> e = Leq(Num(1), Num(0))
+            >>> ev = TypeCheckVisitor()
+            >>> e.accept(ev, None)
+            <class 'bool'>
+        """
+        if exp.left.accept(self, env) == exp.right.accept(self, env) == type(1):
+            return type(True)
+        else:
+            sys.exit("Type error")
 
     def visit_lth(self, exp, env):
-        return exp.left.accept(self, env) | exp.right.accept(self, env)
+        """
+        Usage:
+            >>> e = Lth(Num(1), Num(0))
+            >>> ev = TypeCheckVisitor()
+            >>> e.accept(ev, None)
+            <class 'bool'>
+        """
+        if exp.left.accept(self, env) == exp.right.accept(self, env) == type(1):
+            return type(True)
+        else:
+            sys.exit("Type error")
 
     def visit_neg(self, exp, env):
-        return exp.exp.accept(self, env)
+        """
+        Usage:
+            >>> e = Neg(Num(1))
+            >>> ev = TypeCheckVisitor()
+            >>> e.accept(ev, None)
+            <class 'int'>
+        """
+        if exp.exp.accept(self, env) == type(1):
+            return type(1)
+        else:
+            sys.exit("Type error")
 
     def visit_not(self, exp, env):
-        return exp.exp.accept(self, env)
+        """
+        Usage:
+            >>> e = Not(Bln(False))
+            >>> ev = TypeCheckVisitor()
+            >>> e.accept(ev, None)
+            <class 'bool'>
+        """
+        if exp.exp.accept(self, env) == type(True):
+            return type(True)
+        else:
+            sys.exit("Type error")
 
     def visit_ifThenElse(self, exp, env):
-        return exp.cond.accept(self, env) | exp.e0.accept(self, env) | exp.e1.accept(self, env)
+        """
+        Usage:
+            >>> e0 = Lth(Num(1), Num(0))
+            >>> e = IfThenElse(e0, Bln(True), e0)
+            >>> ev = TypeCheckVisitor()
+            >>> e.accept(ev, {})
+            <class 'bool'>
+
+            >>> e0 = Lth(Num(1), Num(0))
+            >>> e = IfThenElse(e0, Var('v'), Var('w'))
+            >>> ev = TypeCheckVisitor()
+            >>> tp0 = ArrowType(type(1), type(2))
+            >>> tp1 = ArrowType(type(3), type(4))
+            >>> e.accept(ev, {'v':tp0, 'w':tp1})
+            <class 'int'> -> <class 'int'>
+        """
+        type_cond = exp.cond.accept(self, env)
+        type_e0 = exp.e0.accept(self, env)
+        type_e1 = exp.e1.accept(self, env)
+
+        if type_e0 == type_e1 and type_cond == type(True):
+            return type_e0
+        else:
+            sys.exit("Type error")
 
     def visit_let(self, exp, env):
-        u_def = exp.exp_def.accept(self, env)
-        updated_env = dict(env)
-        updated_env[exp.identifier] = None
-        u_body = exp.exp_body.accept(self, updated_env)
-        return u_def | u_body
-    
+        """
+        Usage:
+            >>> e = Let('v', type(True), Not(Bln(False)), Var('v'))
+            >>> ev = TypeCheckVisitor()
+            >>> e.accept(ev, {})
+            <class 'bool'>
+
+            >>> e = Let('v', type(1), Num(2), Add(Var('v'), Num(3)))
+            >>> ev = TypeCheckVisitor()
+            >>> e.accept(ev, {})
+            <class 'int'>
+        """
+        e0_type = exp.exp_def.accept(self, env)
+
+        if exp.tp_var == e0_type:
+            new_env = dict(env)
+            new_env[exp.identifier] = e0_type
+
+            return exp.exp_body.accept(self, new_env)
+        else:
+            sys.exit("Def error")
+
     def visit_fn(self, exp, env):
         """
-        In a function definition, the body of the function is evaluated in an
-        updated environment where the formal parameter is defined.
-        """
-        updated_env = set(env)
-        updated_env.add(exp.formal)
-        return exp.body.accept(self, updated_env)
-    
-    def visit_fun(self, exp, env):
-        pass
+        Usage:
+            >>> e = Fn('v', type(True), Var('v'))
+            >>> ev = TypeCheckVisitor()
+            >>> e.accept(ev, {})
+            <class 'bool'> -> <class 'bool'>
 
+            >>> e = Fn('v', type(1), Add(Var('v'), Num(3)))
+            >>> ev = TypeCheckVisitor()
+            >>> e.accept(ev, {})
+            <class 'int'> -> <class 'int'>
+
+            >>> e0 = Fn('y', type(1), Add(Var('y'), Var('x')))
+            >>> e1 = Fn('x', type(1), e0)
+            >>> ev = TypeCheckVisitor()
+            >>> e1.accept(ev, {})
+            <class 'int'> -> ( <class 'int'> -> <class 'int'> )
+        """
+        new_env = dict(env)
+        new_env[exp.formal] = exp.tp_var
+
+        body_type = exp.body.accept(self, new_env)
+
+        return ArrowType(exp.tp_var, body_type)
+    
     def visit_app(self, exp, env):
         """
-        In a function application, we check both the function and the actual 
-        argument for undefined variables.
-        """
-        u_function = exp.function.accept(self, env)
-        u_actual = exp.actual.accept(self, env)
-        return u_function | u_actual
+        Usage:
+            >>> e0 = Fn('v', type(1), Add(Var('v'), Num(3)))
+            >>> e1 = App(e0, Num(1))
+            >>> ev = TypeCheckVisitor()
+            >>> e1.accept(ev, {})
+            <class 'int'>
 
-
-def safe_eval(exp):
-    """
-    This method applies one simple semantic analysis onto an expression, before
-    evaluating it: it checks if the expression contains free variables, there
-    is, variables used without being defined.
-
-    Example:
-    >>> e0 = Let('v', Add(Num(40), Num(2)), Mul(Var('v'), Var('v')))
-    >>> e1 = Not(Eql(e0, Num(1764)))
-    >>> safe_eval(e1)
-    Value is False
-
-    >>> e0 = Let('v', Add(Num(40), Num(2)), Sub(Var('v'), Num(2)))
-    >>> e1 = Lth(e0, Var('x'))
-    >>> safe_eval(e1)
-    Error: expression contains undefined variables.
-    """
-    use_def_visitor = UseDefVisitor()
-    if len(exp.accept(use_def_visitor, set())) > 0:
-        print("Error: expression contains undefined variables.")
-    else:
-        eval_visitor = EvalVisitor()
-        print(f"Value is {exp.accept(eval_visitor, {})}")
-
-
-class CtrGenVisitor(Visitor):
-    """
-    This visitor creates constraints for a type-inference engine. Basically,
-    it traverses the abstract-syntax tree of expressions, producing pairs like
-    (type0, type1) on the way. A pair like (type0, type1) indicates that these
-    two type variables are the same.
-
-    Examples:
-        >>> e = Let('v', Num(40), Let('w', Num(2), Add(Var('v'), Var('w'))))
-        >>> ev = CtrGenVisitor()
-        >>> sorted([str(ct) for ct in e.accept(ev, ev.fresh_type_var())])
-        ["('TV_1', 'TV_2')", "('TV_2', 'TV_3')", "('v', <class 'int'>)", "('w', <class 'int'>)", "(<class 'int'>, 'TV_3')", "(<class 'int'>, 'v')", "(<class 'int'>, 'w')"]
-    """
-
-    def __init__(self):
-        self.fresh_type_counter = 0
-
-    def fresh_type_var(self):
+            >>> e0 = Fn('y', type(1), Add(Var('y'), Var('x')))
+            >>> e1 = Fn('x', type(1), e0)
+            >>> e2 = App(e1, Num(1))
+            >>> ev = TypeCheckVisitor()
+            >>> e2.accept(ev, {})
+            <class 'int'> -> <class 'int'>
         """
-        Create a new type var using the current value of the fresh_type_counter.
-        Two successive calls to this method will return different type names.
-        Notice that the name of a type variable is always TV_x, where x is
-        some integer number. That means that probably we would run into
-        errors if someone declares a variable called, say, TV_1 or TV_2, as in
-        "let TV_1 <- 1 in TV_1 end". But you can assume that such would never
-        happen in the test cases. In practice, we should define a new class
-        to represent type variables. But let's keep the implementation as
-        simple as possible.
-
-        Example:
-            >>> ev = CtrGenVisitor()
-            >>> [ev.fresh_type_var(), ev.fresh_type_var()]
-            ['TV_1', 'TV_2']
-        """
-        self.fresh_type_counter += 1
-        return f"TV_{self.fresh_type_counter}"
-
-    """
-    The CtrGenVisitor class creates constraints that, once solved, will give
-    us the type of the different variables. Every accept method takes in
-    two arguments (in addition to self):
-    
-    exp: is the expression that is being analyzed.
-    type_var: that is a name that works as a placeholder for the type of the
-    expression. Whenever we visit a new expression, we create a type variable
-    to represent its type (you can do that with the method fresh_type_var).
-    The only exception is the type of Var expressions. In this case, the type
-    of a Var expression is the identifier of that expression.
-    """
-
-    def visit_var(self, exp, type_var):
-        """
-        Example:
-            >>> e = Var('v')
-            >>> ev = CtrGenVisitor()
-            >>> e.accept(ev, ev.fresh_type_var())
-            {('v', 'TV_1')}
-        """
-        return {(exp.identifier, type_var)}
-
-    def visit_bln(self, exp, type_var):
-        """
-        Example:
-            >>> e = Bln(True)
-            >>> ev = CtrGenVisitor()
-            >>> e.accept(ev, ev.fresh_type_var())
-            {(<class 'bool'>, 'TV_1')}
-        """
-        return {(type(True), type_var)}
-
-    def visit_num(self, exp, type_var):
-        """
-        Example:
-            >>> e = Num(1)
-            >>> ev = CtrGenVisitor()
-            >>> e.accept(ev, ev.fresh_type_var())
-            {(<class 'int'>, 'TV_1')}
-        """
-        return {(type(1), type_var)}
-
-    def visit_eql(self, exp, type_var):
-        """
-        Example:
-            >>> e = Eql(Num(1), Bln(True))
-            >>> ev = CtrGenVisitor()
-            >>> sorted([str(ct) for ct in e.accept(ev, ev.fresh_type_var())])
-            ["(<class 'bool'>, 'TV_1')", "(<class 'bool'>, 'TV_2')", "(<class 'int'>, 'TV_2')"]
-
-        Notice that if we have repeated constraints, they only appear once in
-        the set of constraints (after all, it's a set!). As an example, we
-        would have two occurrences of the pair (TV_2, int) in the following
-        example:
-            >>> e = Eql(Num(1), Num(2))
-            >>> ev = CtrGenVisitor()
-            >>> sorted([str(ct) for ct in e.accept(ev, ev.fresh_type_var())])
-            ["(<class 'bool'>, 'TV_1')", "(<class 'int'>, 'TV_2')"]
-        """
-        fresh_type = self.fresh_type_var()
-        left_cnstrnt = exp.left.accept(self, fresh_type)
-        right_cnstrnt = exp.right.accept(self, fresh_type)
-        return left_cnstrnt | right_cnstrnt | {(type(True), type_var)}
-
-    def visit_and(self, exp, type_var):
-        """
-        Example:
-            >>> e = And(Bln(False), Bln(True))
-            >>> ev = CtrGenVisitor()
-            >>> sorted([str(ct) for ct in e.accept(ev, ev.fresh_type_var())])
-            ["(<class 'bool'>, 'TV_1')", "(<class 'bool'>, <class 'bool'>)"]
-
-        In the above example, notice that we ended up getting a trivial
-        constraint, e.g.: (<class 'bool'>, <class 'bool'>). That's alright:
-        don't worry about these trivial constraints at this point. We can
-        remove them from the set of constraints later on, when we try to
-        solve them.
-        """
-        left_cnstrnt = exp.left.accept(self, type(True))
-        right_cnstrnt = exp.right.accept(self, type(True))
-        return left_cnstrnt | right_cnstrnt | {(type(True), type_var)}
-
-    def visit_or(self, exp, type_var):
-        """
-        Example:
-            >>> e = Or(Bln(False), Bln(True))
-            >>> ev = CtrGenVisitor()
-            >>> sorted([str(ct) for ct in e.accept(ev, ev.fresh_type_var())])
-            ["(<class 'bool'>, 'TV_1')", "(<class 'bool'>, <class 'bool'>)"]
-        """
-        left_cnstrnt = exp.left.accept(self, type(True))
-        right_cnstrnt = exp.right.accept(self, type(True))
-        return left_cnstrnt | right_cnstrnt | {(type(True), type_var)}
-
-    def visit_add(self, exp, type_var):
-        """
-        Example:
-            >>> e = Add(Num(1), Num(2))
-            >>> ev = CtrGenVisitor()
-            >>> sorted([str(ct) for ct in e.accept(ev, ev.fresh_type_var())])
-            ["(<class 'int'>, 'TV_1')", "(<class 'int'>, <class 'int'>)"]
-        """
-        left_cnstrnt = exp.left.accept(self, type(1))
-        right_cnstrnt = exp.right.accept(self, type(1))
-        return left_cnstrnt | right_cnstrnt | {(type(1), type_var)}
-
-    def visit_sub(self, exp, type_var):
-        """
-        Example:
-            >>> e = Sub(Num(1), Num(2))
-            >>> ev = CtrGenVisitor()
-            >>> sorted([str(ct) for ct in e.accept(ev, ev.fresh_type_var())])
-            ["(<class 'int'>, 'TV_1')", "(<class 'int'>, <class 'int'>)"]
-        """
-        left_cnstrnt = exp.left.accept(self, type(1))
-        right_cnstrnt = exp.right.accept(self, type(1))
-        return left_cnstrnt | right_cnstrnt | {(type(1), type_var)}
-
-    def visit_mul(self, exp, type_var):
-        """
-        Example:
-            >>> e = Mul(Num(1), Num(2))
-            >>> ev = CtrGenVisitor()
-            >>> sorted([str(ct) for ct in e.accept(ev, ev.fresh_type_var())])
-            ["(<class 'int'>, 'TV_1')", "(<class 'int'>, <class 'int'>)"]
-        """
-        left_cnstrnt = exp.left.accept(self, type(1))
-        right_cnstrnt = exp.right.accept(self, type(1))
-        return left_cnstrnt | right_cnstrnt | {(type(1), type_var)}
-
-    def visit_div(self, exp, type_var):
-        """
-        Example:
-            >>> e = Div(Num(1), Num(2))
-            >>> ev = CtrGenVisitor()
-            >>> sorted([str(ct) for ct in e.accept(ev, ev.fresh_type_var())])
-            ["(<class 'int'>, 'TV_1')", "(<class 'int'>, <class 'int'>)"]
-        """
-        left_cnstrnt = exp.left.accept(self, type(1))
-        right_cnstrnt = exp.right.accept(self, type(1))
-        return left_cnstrnt | right_cnstrnt | {(type(1), type_var)}
-
-    def visit_mod(self, exp, type_var):
-        """
-        Example:
-            >>> e = Mod(Num(10), Num(5))
-            >>> ev = CtrGenVisitor()
-            >>> sorted([str(ct) for ct in e.accept(ev, ev.fresh_type_var())])
-            ["(<class 'int'>, 'TV_1')", "(<class 'int'>, <class 'int'>)"]
-        """
-        left_cnstrnt = exp.left.accept(self, type(1))
-        right_cnstrnt = exp.right.accept(self, type(1))
-        return left_cnstrnt | right_cnstrnt | {(type(1), type_var)}
-
-    def visit_leq(self, exp, type_var):
-        """
-        Example:
-            >>> e = Leq(Num(1), Num(2))
-            >>> ev = CtrGenVisitor()
-            >>> sorted([str(ct) for ct in e.accept(ev, ev.fresh_type_var())])
-            ["(<class 'bool'>, 'TV_1')", "(<class 'int'>, <class 'int'>)"]
-        """
-        left_cnstrnt = exp.left.accept(self, type(1))
-        right_cnstrnt = exp.right.accept(self, type(1))
-        return left_cnstrnt | right_cnstrnt | {(type(True), type_var)}
-
-    def visit_lth(self, exp, type_var):
-        """
-        Example:
-            >>> e = Lth(Num(1), Num(2))
-            >>> ev = CtrGenVisitor()
-            >>> sorted([str(ct) for ct in e.accept(ev, ev.fresh_type_var())])
-            ["(<class 'bool'>, 'TV_1')", "(<class 'int'>, <class 'int'>)"]
-        """
-        left_cnstrnt = exp.left.accept(self, type(1))
-        right_cnstrnt = exp.right.accept(self, type(1))
-        return left_cnstrnt | right_cnstrnt | {(type(True), type_var)}
-
-    def visit_neg(self, exp, type_var):
-        """
-        Example:
-            >>> e = Neg(Num(1))
-            >>> ev = CtrGenVisitor()
-            >>> sorted([str(ct) for ct in e.accept(ev, ev.fresh_type_var())])
-            ["(<class 'int'>, 'TV_1')", "(<class 'int'>, <class 'int'>)"]
-        """
-        return exp.exp.accept(self, type(1)) | {(type(1), type_var)}
-
-    def visit_not(self, exp, type_var):
-        """
-        Example:
-            >>> e = Not(Bln(True))
-            >>> ev = CtrGenVisitor()
-            >>> sorted([str(ct) for ct in e.accept(ev, ev.fresh_type_var())])
-            ["(<class 'bool'>, 'TV_1')", "(<class 'bool'>, <class 'bool'>)"]
-        """
-        return exp.exp.accept(self, type(True)) | {(type(True), type_var)}
-
-    def visit_let(self, exp, type_var):
-        """
-        Example:
-            >>> e = Let('v', Num(42), Var('v'))
-            >>> ev = CtrGenVisitor()
-            >>> sorted([str(ct) for ct in e.accept(ev, ev.fresh_type_var())])
-            ["('TV_1', 'TV_2')", "('v', 'TV_2')", "(<class 'int'>, 'v')"]
-        """
-        def_cnstrnt = exp.exp_def.accept(self, exp.identifier)
-        fresh_type = self.fresh_type_var()
-        body_cnstrnt = exp.exp_body.accept(self, fresh_type)
-        return def_cnstrnt | body_cnstrnt | {(type_var, fresh_type)}
-
-    def visit_ifThenElse(self, exp, type_var):
-        """
-        Example:
-            >>> e = IfThenElse(Bln(True), Num(42), Num(30))
-            >>> ev = CtrGenVisitor()
-            >>> sorted([str(ct) for ct in e.accept(ev, ev.fresh_type_var())])
-            ["('TV_1', 'TV_2')", "(<class 'bool'>, <class 'bool'>)", "(<class 'int'>, 'TV_2')"]
-        """
-        cond_cnstrnt = exp.cond.accept(self, type(True))
-        fresh_type = self.fresh_type_var()
-        e0_cnstrnt = exp.e0.accept(self, fresh_type)
-        e1_cnstrnt = exp.e1.accept(self, fresh_type)
-        return cond_cnstrnt | e0_cnstrnt | e1_cnstrnt | {(type_var, fresh_type)}
-    
-    def visit_fn(self, exp, type_var):
-        """
-        Example:
-            >>> e = Fn('x', Add(Var('x'), Num(1)))
-            >>> ev = CtrGenVisitor()
-            >>> sorted([str(ct) for ct in e.accept(ev, ev.fresh_type_var())])
-            ["('TV_1', 'TV_2')", "('TV_1', 'TV_3')", "('x', <class 'int'>)", "(<class 'int'>, 'TV_3')", "(<class 'int'>, <class 'int'>)"]
-        """
-        param_type = self.fresh_type_var()
-        body_type = self.fresh_type_var()
-        body_constraints = exp.body.accept(self, body_type)
-        return body_constraints | {(type_var, body_type)} | {(type_var, param_type)}
-    
-    def visit_fun(self, exp, env):
-        pass
-
-    def visit_app(self, exp, type_var):
-        """
-        Example:
-            >>> f = Fn('x', Add(Var('x'), Num(1)))
-            >>> e = App(f, Num(42))
-            >>> ev = CtrGenVisitor()
-            >>> sorted([str(ct) for ct in e.accept(ev, ev.fresh_type_var())])
-            ["('TV_2', 'TV_1')", "('TV_2', 'TV_3')", "('TV_2', 'TV_4')", "('TV_2', 'TV_5')", "('x', <class 'int'>)", "(<class 'int'>, 'TV_3')", "(<class 'int'>, 'TV_5')", "(<class 'int'>, <class 'int'>)"]
-        """
-        func_type = self.fresh_type_var()
-        arg_type = self.fresh_type_var()
-        func_constraints = exp.function.accept(self, func_type)
-        arg_constraints = exp.actual.accept(self, arg_type)
-        return func_constraints | arg_constraints | {(func_type, arg_type)} | {(func_type, type_var)}
+        function_type = exp.function.accept(self, env)
+        actual_type = exp.actual.accept(self, env)
+        if actual_type == function_type.hd:
+            return function_type.tl
+        else:
+            sys.exit("Type error")
