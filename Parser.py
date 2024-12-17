@@ -2,7 +2,6 @@ import sys
 
 from Expression import *
 from Lexer import Token, TokenType
-from Visitor import ArrowType
 
 """
 This file implements a parser for SML with anonymous functions and type
@@ -204,18 +203,13 @@ class Parser:
         return self.let_exp()
 
     def let_exp(self):
-        # let_exp ::= <let> <var>: types <- fn_exp <in> fn_exp <end> | val_exp
         if self.match(TokenType.LET):
             self.advance_newlines()
-            # Parse: <var>: types <- fn_exp in fn_exp end
             if self.current_token().kind == TokenType.VAR:
                 identifier = self.current_token().text
                 self.advance()
-                if not self.match(TokenType.COL):
-                    raise ValueError("Expected ':' after variable in 'let'")
-                tp_var = self.types()
                 if not self.match(TokenType.ASN):
-                    raise ValueError("Expected '<-' after types in 'let'")
+                    raise ValueError("Expected '<-' after variable in 'let'")
                 exp_def = self.fn_exp()
                 self.advance_newlines()
                 if not self.match(TokenType.INX):
@@ -225,11 +219,11 @@ class Parser:
                 self.advance_newlines()
                 if not self.match(TokenType.END):
                     raise ValueError("Expected 'end' after let body")
-                return Let(identifier, tp_var, exp_def, exp_body)
+                return Let(identifier, exp_def, exp_body)
             else:
-                # If not a var, fallback to val_exp (Though new grammar expects var:types)
                 return self.val_exp()
         return self.val_exp()
+
 
     def val_exp(self):
         # val_exp ::= val_tk (val_tk)*
