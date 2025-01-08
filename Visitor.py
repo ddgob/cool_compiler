@@ -67,6 +67,119 @@ class Visitor(ABC):
         pass
 
 
+class RenameVisitor(ABC):
+    """
+    This visitor traverses the AST of a program, renaming variables to ensure
+    that they all have different names.
+
+    Usage:
+        >>> e0 = Let('x', Num(2), Add(Var('x'), Num(3)))
+        >>> e1 = Let('x', e0, Mul(Var('x'), Num(10)))
+        >>> e0.identifier == e1.identifier
+        True
+
+        >>> e0 = Let('x', Num(2), Add(Var('x'), Num(3)))
+        >>> e1 = Let('x', e0, Mul(Var('x'), Num(10)))
+        >>> r = RenameVisitor()
+        >>> e1.accept(r, {})
+        >>> e0.identifier == e1.identifier
+        False
+
+        >>> x0 = Var('x')
+        >>> x1 = Var('x')
+        >>> e0 = Let('x', Num(2), Add(x0, Num(3)))
+        >>> e1 = Let('x', e0, Mul(x1, Num(10)))
+        >>> x0.identifier == x1.identifier
+        True
+
+        >>> x0 = Var('x')
+        >>> x1 = Var('x')
+        >>> e0 = Let('x', Num(2), Add(x0, Num(3)))
+        >>> e1 = Let('x', e0, Mul(x1, Num(10)))
+        >>> r = RenameVisitor()
+        >>> e1.accept(r, {})
+        >>> x0.identifier == x1.identifier
+        False
+    """
+
+    def __init__(self):
+        self.var_scope = {}
+
+    def _generate_unique_name(self, var_name):
+        if var_name not in self.var_scope:
+            self.var_scope[var_name] = []
+        
+        unique_name = f"{var_name}_{len(self.var_scope[var_name])}"
+        
+        self.var_scope[var_name].append(unique_name)
+        
+        return unique_name
+
+    def _pop_variable(self, var_name):
+        if var_name in self.var_scope and self.var_scope[var_name]:
+            self.var_scope[var_name].pop()
+
+    def _get_current_var_name(self, var_name):
+        if var_name in self.var_scope and self.var_scope[var_name]:
+            return self.var_scope[var_name][-1]
+        return var_name
+    
+    def visit_let(self, exp, arg):
+        original_name = exp.identifier
+        
+        exp.exp_def.accept(self, arg)
+
+        new_name = self._generate_unique_name(original_name)
+        exp.identifier = new_name
+
+        exp.exp_body.accept(self, arg)
+
+        self._pop_variable(original_name)
+    
+    def visit_var(self, exp, arg):
+        exp.identifier = self._get_current_var_name(exp.identifier)
+
+    def visit_bln(self, exp, arg):
+        pass
+
+    def visit_num(self, exp, arg):
+        pass
+
+    def visit_eql(self, exp, arg):
+        exp.left.accept(self, arg)
+        exp.right.accept(self, arg)
+
+    def visit_add(self, exp, arg):
+        exp.left.accept(self, arg)
+        exp.right.accept(self, arg)
+
+    def visit_sub(self, exp, arg):
+        exp.left.accept(self, arg)
+        exp.right.accept(self, arg)
+
+    def visit_mul(self, exp, arg):
+        exp.left.accept(self, arg)
+        exp.right.accept(self, arg)
+
+    def visit_div(self, exp, arg):
+        exp.left.accept(self, arg)
+        exp.right.accept(self, arg)
+
+    def visit_leq(self, exp, arg):
+        exp.left.accept(self, arg)
+        exp.right.accept(self, arg)
+
+    def visit_lth(self, exp, arg):
+        exp.left.accept(self, arg)
+        exp.right.accept(self, arg)
+
+    def visit_neg(self, exp, arg):
+        exp.exp.accept(self, arg)
+
+    def visit_not(self, exp, arg):
+        exp.exp.accept(self, arg)
+
+
 class GenVisitor(Visitor):
     def __init__(self):
         self.label_counter = 0
